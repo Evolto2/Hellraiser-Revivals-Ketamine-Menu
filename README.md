@@ -135,6 +135,7 @@ out with the reason in a tooltip instead of crashing.
 | Hotkeys | Any switch can get its own key in **Settings → Hotkeys**. Hotkeys work with the menu closed and show a small notification. |
 | Hover | Hover any option to see what it does, or why it is unavailable. |
 | UI scale | Follows your screen resolution; adjust it with the − / + buttons in **Settings**. |
+| Footer | Game version, CPU, GPU, RAM, resolution and FPS at a glance, at the bottom of the menu. |
 | Settings file | Everything is saved to `KetamineMenu.ini` next to the DLL. **Settings → Reset configuration** restores the defaults. |
 
 > [!WARNING]

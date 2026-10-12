@@ -40,7 +40,7 @@ static void Main(HMODULE self)
     km::Log("winmm forwarding: %s (%ls)", owner && owner != self ? "OK" : "FAILED",
             owner ? ModulePath(owner).c_str() : L"unresolved");
 
-    menu::Init(self); // settings + game-thread tick, before any hook can call into them
+    menu::Init(self, ver); // settings + game-thread tick, before any hook can call into them
     km::Log("Overlay: %s", overlay::Install() ? "hooks installed" : "disabled");
     ue::Init(g_mainThread);
 }

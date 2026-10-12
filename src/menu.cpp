@@ -37,7 +37,7 @@ std::atomic<int> g_binding{kNotBinding};
 float g_scale = 0; // 0 = automatic, from the screen height
 float g_appliedScale = -1;
 int g_tab = 0;
-std::string g_machine; // "CPU · RAM"; the GPU comes from the overlay
+std::string g_game, g_cpu, g_ram; // footer; the GPU comes from the overlay
 
 struct Toast {
     std::string text;
@@ -72,20 +72,33 @@ std::string KeyName(unsigned vk)
     return km::Utf8(std::wstring(buf, size_t(n)));
 }
 
-// "AMD Ryzen 7 7800X3D 8-Core Processor  ·  32 GB RAM"
-std::string MachineInfo()
+// Drops vendor boilerplate: "AMD Ryzen 7 9800X3D 8-Core Processor" -> "Ryzen 7 9800X3D".
+std::string ShortHardware(std::string s)
+{
+    for (const char* noise : {"(R)", "(TM)", "(tm)", "AMD ", "Intel ", "NVIDIA ", " Processor", " CPU", " with Radeon Graphics"})
+        for (size_t p; (p = s.find(noise)) != std::string::npos;) s.erase(p, strlen(noise));
+    if (auto core = s.find("-Core"); core != std::string::npos) { // " 8-Core"
+        size_t start = s.rfind(' ', core);
+        s.erase(start == std::string::npos ? 0 : start, core + 5 - (start == std::string::npos ? 0 : start));
+    }
+    if (auto at = s.find(" @"); at != std::string::npos) s.resize(at);
+    while (!s.empty() && s.back() == ' ') s.pop_back();
+    while (!s.empty() && s.front() == ' ') s.erase(0, 1);
+    return s;
+}
+
+void ReadHardware()
 {
     wchar_t cpu[128] = {};
     DWORD size = sizeof(cpu);
     RegGetValueW(HKEY_LOCAL_MACHINE, L"HARDWARE\\DESCRIPTION\\System\\CentralProcessor\\0", L"ProcessorNameString",
                  RRF_RT_REG_SZ, nullptr, cpu, &size);
-    std::string name = km::Utf8(cpu);
-    while (!name.empty() && name.back() == ' ') name.pop_back();
+    g_cpu = ShortHardware(km::Utf8(cpu));
     MEMORYSTATUSEX mem{sizeof(mem)};
     GlobalMemoryStatusEx(&mem);
     char ram[32];
-    snprintf(ram, sizeof(ram), "%.0f GB RAM", double(mem.ullTotalPhys) / (1ull << 30));
-    return name + "  ·  " + ram;
+    snprintf(ram, sizeof(ram), "%.0f GB", double(mem.ullTotalPhys) / (1ull << 30));
+    g_ram = ram;
 }
 
 ImFont* LoadFont(int id)
@@ -724,21 +737,35 @@ void Sidebar()
     ImGui::EndChild();
 }
 
+// Spec line: GAME 1.0.1.227219   CPU Ryzen 7 9800X3D   GPU GeForce RTX 5090 32 GB   RAM 64 GB   DISPLAY 2560 × 1440   FPS 144
 void Footer()
 {
-    float s = S(), size = kBaseFont * 0.78f * s;
+    float s = S(), size = kBaseFont * 0.78f * s, labelSize = kBaseFont * 0.66f * s;
     ImDrawList* dl = ImGui::GetWindowDrawList();
     ImVec2 p = ImGui::GetCursorScreenPos();
     float avail = ImGui::GetContentRegionAvail().x;
-    std::string info = g_machine;
-    if (!overlay::GpuName().empty()) info += "  ·  " + overlay::GpuName();
-    char res[48];
-    snprintf(res, sizeof(res), "  ·  %.0f × %.0f", ImGui::GetIO().DisplaySize.x, ImGui::GetIO().DisplaySize.y);
-    info += res;
+    ImGuiIO& io = ImGui::GetIO();
+
+    std::string gpu = overlay::GpuName();
+    for (size_t at; (at = gpu.find("  ·  ")) != std::string::npos;) gpu.replace(at, 5, " ");
+    gpu = ShortHardware(gpu);
+    char display[32], fps[16];
+    snprintf(display, sizeof(display), "%.0f × %.0f", io.DisplaySize.x, io.DisplaySize.y);
+    snprintf(fps, sizeof(fps), "%.0f", io.Framerate);
+    const std::pair<const char*, std::string> items[] = {
+        {"GAME", g_game}, {"CPU", g_cpu}, {"GPU", gpu}, {"RAM", g_ram}, {"DISPLAY", display}, {"FPS", fps}};
+
     std::string hint = KeyName(g_menuKey) + " to close";
     ImVec2 hs = regular->CalcTextSizeA(size, FLT_MAX, 0, hint.c_str());
-    dl->PushClipRect(p, {p.x + avail - hs.x - 24 * s, p.y + size * 2}, true);
-    dl->AddText(regular, size, p, Raw(Muted), info.c_str());
+    float x = p.x, right = p.x + avail - hs.x - 20 * s, labelY = p.y + (size - labelSize) * 0.72f; // baseline-ish alignment with the values
+    dl->PushClipRect(p, {right, p.y + size * 2}, true);
+    for (const auto& [label, value] : items) {
+        if (value.empty()) continue;
+        dl->AddText(bold, labelSize, {x, labelY}, Raw(Muted), label);
+        x += bold->CalcTextSizeA(labelSize, FLT_MAX, 0, label).x + 5 * s;
+        dl->AddText(regular, size, {x, p.y}, Raw(Alpha(Text, 0.82f)), value.c_str());
+        x += regular->CalcTextSizeA(size, FLT_MAX, 0, value.c_str()).x + 16 * s;
+    }
     dl->PopClipRect();
     dl->AddText(regular, size, {p.x + avail - hs.x, p.y}, Raw(Muted), hint.c_str());
     ImGui::Dummy({avail, size});
@@ -781,15 +808,17 @@ void DrawWindow()
 
 } // namespace
 
-void Init(void* dllModule)
+void Init(void* dllModule, const std::string& gameVersion)
 {
     g_module = static_cast<HMODULE>(dllModule);
+    g_game = gameVersion.substr(0, gameVersion.find('_')); // "1.0.1.227219_HellraiserGame_Shipping..."
+    if (g_game.empty() && GetEnvironmentVariableA("KM_PREVIEW", nullptr, 0)) g_game = "1.0.1.227219"; // test host
     g_menuKey = unsigned(cfg::GetInt("Menu", "Key", VK_INSERT));
     g_scale = cfg::GetFloat("Menu", "Scale", 0);
     if (g_scale > 0) g_scale = std::clamp(g_scale, 0.7f, 2.5f);
     g_tab = std::clamp(cfg::GetInt("Menu", "Tab", 0), 0, kTabCount - 1);
     for (int t = 0; t < feat::ToggleCount; t++) g_hotkey[t] = cfg::GetInt("Hotkeys", feat::kToggles[t].key, 0);
-    g_machine = MachineInfo();
+    ReadHardware();
     feat::Init();
 }
 
