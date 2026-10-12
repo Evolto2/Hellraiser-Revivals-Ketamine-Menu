@@ -1,0 +1,23 @@
+# Build output
+build/
+out/
+.vs/
+*.dll
+*.exe
+*.pdb
+*.lib
+*.exp
+
+# SDK dump and anything copied from the game: stays local, never committed
+dump/
+*.sav
+*.pak
+*.utoc
+*.ucas
+*.usmap
+
+# Runtime files written next to the DLL
+KetamineMenu.log
+
+# Local working notes (paths and settings of the maintainer's PC)
+CLAUDE.md
