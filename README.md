@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="docs/hero.jpg" alt="Ketamine Menu running over the Hellraiser: Revival title screen" width="100%">
+  <img src="docs/hero.jpg" alt="Hellraiser Revival's Ketamine Menu running over the game's title screen" width="100%">
 </p>
 
-<h1 align="center">Ketamine Menu</h1>
+<h1 align="center">Hellraiser Revival's Ketamine Menu</h1>
 
 <p align="center">
   A clean, in-game trainer for <b>Clive Barker's Hellraiser: Revival</b> (PC).<br>
@@ -10,8 +10,8 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/literalynn/KetamineMenu/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/literalynn/KetamineMenu?color=AC6EE2&label=download"></a>
-  <a href="https://github.com/literalynn/KetamineMenu/actions/workflows/build.yml"><img alt="Build" src="https://github.com/literalynn/KetamineMenu/actions/workflows/build.yml/badge.svg"></a>
+  <a href="https://github.com/literalynn/Hellraiser-Revivals-Ketamine-Menu/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/literalynn/Hellraiser-Revivals-Ketamine-Menu?color=AC6EE2&label=download"></a>
+  <a href="https://github.com/literalynn/Hellraiser-Revivals-Ketamine-Menu/actions/workflows/build.yml"><img alt="Build" src="https://github.com/literalynn/Hellraiser-Revivals-Ketamine-Menu/actions/workflows/build.yml/badge.svg"></a>
   <img alt="Game version" src="https://img.shields.io/badge/game-1.0.1.227219-F89FCD">
   <img alt="Platform" src="https://img.shields.io/badge/platform-Windows%2010%20%2F%2011%20x64-1B1B23">
   <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-AC6EE2"></a>
@@ -37,7 +37,7 @@
 
 You only need one file, and nothing to install on your PC (no Visual C++ redistributable, no launcher).
 
-1. **Download** the latest `KetamineMenu-vX.Y.Z.zip` from the [Releases page](https://github.com/literalynn/KetamineMenu/releases/latest) and unzip it.
+1. **Download** the latest `KetamineMenu-vX.Y.Z.zip` from the [Releases page](https://github.com/literalynn/Hellraiser-Revivals-Ketamine-Menu/releases/latest) and unzip it.
 2. **Open the game folder**: in Steam, right-click *Clive Barker's Hellraiser: Revival* → **Manage** → **Browse local files**.
    Then open `Hellraiser` → `Binaries` → `Win64` (the folder that contains `Hellraiser-Win64-Shipping.exe`).
 3. **Copy `winmm.dll` into that `Win64` folder.** Optionally copy `KetamineMenu.ini` too (default settings).
@@ -169,7 +169,7 @@ the menu can't handle yet. Please open an issue and attach `KetamineMenu.log`.
 <summary><b>My antivirus flags the DLL</b></summary>
 
 Trainers hook into a game's rendering and memory, which antivirus heuristics dislike. This is a false positive: the source code is
-right here, and every release is built from it by [GitHub Actions](https://github.com/literalynn/KetamineMenu/actions). You can also
+right here, and every release is built from it by [GitHub Actions](https://github.com/literalynn/Hellraiser-Revivals-Ketamine-Menu/actions). You can also
 [build it yourself](#build-from-source).
 </details>
 
@@ -183,7 +183,7 @@ Options that can no longer be found are greyed out with the reason. Open an issu
 <details>
 <summary><b>How do I report a bug?</b></summary>
 
-[Open an issue](https://github.com/literalynn/KetamineMenu/issues) with what you did, what happened, and the `KetamineMenu.log` file
+[Open an issue](https://github.com/literalynn/Hellraiser-Revivals-Ketamine-Menu/issues) with what you did, what happened, and the `KetamineMenu.log` file
 from your last session (it is overwritten every time the game starts).
 </details>
 

@@ -694,7 +694,7 @@ void Header(const feat::Snapshot& snap)
     ImVec2 p = ImGui::GetCursorScreenPos();
     float avail = ImGui::GetContentRegionAvail().x;
     ImGui::PushFont(bold, kBaseFont * 1.45f);
-    ImGui::TextUnformatted("Ketamine Menu");
+    ImGui::TextUnformatted("Hellraiser Revival's Ketamine Menu");
     ImGui::PopFont();
     ImGui::TextDisabled("v%s  ·  %s", KM_VERSION, overlay::ApiName());
 
