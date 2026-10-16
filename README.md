@@ -29,10 +29,8 @@
 
 ---
 
-> [!IMPORTANT]
-> **Single-player only.** Ketamine Menu has no online features. The game itself talks to its publisher's online services, so
-> play in **Steam offline mode** while the menu is installed, and **back up your saves** before you start
-> (`%LOCALAPPDATA%\Hellraiser\Saved\SaveGames`).
+> [!TIP]
+> **Back up your saves** before you start: `%LOCALAPPDATA%\Hellraiser\Saved\SaveGames`.
 
 ## Install
 
@@ -233,7 +231,7 @@ Pushing a `v*` tag builds the release zip automatically.
 
 ## Disclaimer
 
-Ketamine Menu is a fan-made tool for single-player use. It is not affiliated with or endorsed by Saber Interactive, Boss Team Games
+Ketamine Menu is a fan-made tool. It is not affiliated with or endorsed by Saber Interactive, Boss Team Games
 or Clive Barker. All trademarks belong to their respective owners. Use it at your own risk.
 
 ## License
