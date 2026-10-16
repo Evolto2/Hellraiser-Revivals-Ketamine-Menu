@@ -878,7 +878,7 @@ bool OnKeyDown(unsigned vk)
     if (vk == g_menuKey) {
         bool open = !g_open;
         g_open = open;
-        km::Log("Menu %s", open ? "opened" : "closed"); // a crash right after this line points at the overlay
+        km::Log("Menu %s%s", open ? "opened" : "closed", overlay::Drawing() ? "" : " (overlay not drawing, see the DX lines)"); // a crash right after this line points at the overlay
         if (open) ClipCursor(nullptr); // the game confines the cursor; free it for the menu
         return true;
     }

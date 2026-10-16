@@ -83,7 +83,7 @@ struct Dx12 {
     std::vector<UINT> freeSrv;
 } g12;
 
-bool g_backendReady; // ImGui renderer backend initialised (DX11 or DX12)
+std::atomic<bool> g_backendReady; // ImGui renderer backend initialised (DX11 or DX12)
 
 template <class T> void SafeRelease(T*& p)
 {
@@ -108,7 +108,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 {
     // Menu key, hotkeys and key binding (bit 30 = auto-repeat).
     if ((msg == WM_KEYDOWN || msg == WM_SYSKEYDOWN) && !(lp & (1 << 30)) && menu::OnKeyDown(UINT(wp))) return 0;
-    if (menu::IsOpen() && !g_failed) {
+    // Only while the menu is really drawn: an overlay that never started must not eat the game's input.
+    if (menu::IsOpen() && g_backendReady && !g_failed) {
         // Bounded wait: never let the game's window thread hang on the render thread.
         if (std::unique_lock lock(g_mutex, std::chrono::milliseconds(100)); lock.owns_lock())
             ImGui_ImplWin32_WndProcHandler(hwnd, msg, wp, lp);
@@ -142,21 +143,33 @@ void STDMETHODCALLTYPE hkExecuteCommandLists(ID3D12CommandQueue* q, UINT n, ID3D
 }
 
 // The queue the swapchain presents on. With frame generation or another overlay the game submits to several direct
-// queues, and drawing on one that doesn't present races the present (corruption or device removal).
-ID3D12CommandQueue* FindPresentQueue(IDXGISwapChain* sc, ID3D12Device* device, bool& inSwapchain)
+// queues, and drawing on one that doesn't present races the present (corruption or device removal). Devices are
+// compared by GPU (adapter LUID): interposers (Streamline, RTSS...) can hand out different objects for one device.
+ID3D12CommandQueue* FindPresentQueue(IDXGISwapChain* sc, ID3D12Device* device, bool& inSwapchain, bool logAll)
 {
     // DXGI keeps a pointer to its queue inside the swapchain object: look for a queue we know there.
     uintptr_t mem[512] = {};
     bool scanned = ue::SafeRead(sc, mem, sizeof(mem)) || ue::SafeRead(sc, mem, sizeof(mem) / 4);
+    LUID gpu = device->GetAdapterLuid();
     std::lock_guard lock(g_queueMutex);
     ID3D12CommandQueue* first = nullptr;
     for (ID3D12CommandQueue* q : g_queues) {
         ID3D12Device* d = nullptr;
-        bool sameDevice = SUCCEEDED(q->GetDevice(IID_PPV_ARGS(&d))) && d == device;
+        bool sameGpu = false;
+        if (SUCCEEDED(q->GetDevice(IID_PPV_ARGS(&d)))) {
+            LUID l = d->GetAdapterLuid();
+            sameGpu = l.LowPart == gpu.LowPart && l.HighPart == gpu.HighPart;
+        }
+        bool referenced = scanned && std::find(std::begin(mem), std::end(mem), reinterpret_cast<uintptr_t>(q)) != std::end(mem);
+        if (logAll)
+            km::Log("DX12:   queue %p, device %p, %s GPU%s", static_cast<void*>(q), static_cast<void*>(d),
+                    sameGpu ? "same" : "other", referenced ? ", referenced by the swapchain" : "");
         SafeRelease(d);
-        if (!sameDevice) continue;
-        inSwapchain = scanned && std::find(std::begin(mem), std::end(mem), reinterpret_cast<uintptr_t>(q)) != std::end(mem);
-        if (inSwapchain) return q;
+        if (!sameGpu) continue;
+        if (referenced && !inSwapchain) {
+            inSwapchain = true;
+            first = q;
+        }
         if (!first) first = q;
     }
     return first;
@@ -202,11 +215,25 @@ bool InitDx12(IDXGISwapChain* sc, const DXGI_SWAP_CHAIN_DESC& sd, ID3D12Device* 
     if (FAILED(sc->GetDevice(IID_PPV_ARGS(&queue)))) {
         if (!g_ecHooked) HookExecuteCommandLists(device);
         bool inSwapchain = false;
-        queue = FindPresentQueue(sc, device, inSwapchain);
+        if (++g_queueWait == 120) km::Log("DX12: swapchain device %p, direct queues seen:", static_cast<void*>(device));
+        queue = FindPresentQueue(sc, device, inSwapchain, g_queueWait == 120);
+        if (!queue && g_queueWait >= 600) {
+            km::Log("DX12: no queue of this GPU after ~10 s, overlay disabled");
+            g_failed = true;
+            return false;
+        }
         // Not referenced by the swapchain yet: give its queue ~2 s of frames to submit before settling.
-        if (!queue || (!inSwapchain && ++g_queueWait < 120)) return false;
-        how = inSwapchain ? "found in swapchain" : "first direct queue of the device";
+        if (!queue || (!inSwapchain && g_queueWait < 120)) return false;
+        how = inSwapchain ? "found in swapchain" : "first direct queue of the GPU";
         queue->AddRef();
+        // An interposer may wrap the device: create our objects on the queue's own device so they belong together.
+        ID3D12Device* qd = nullptr;
+        if (SUCCEEDED(queue->GetDevice(IID_PPV_ARGS(&qd)))) {
+            if (qd != device) km::Log("DX12: queue belongs to device %p, not %p: using the queue's", static_cast<void*>(qd),
+                                      static_cast<void*>(device));
+            device = qd;
+            qd->Release(); // the queue keeps it alive; g12.device takes its own reference below
+        }
     }
     km::Log("DX12: %u buffers, format %d, %ux%u, queue %p (%s)", sd.BufferCount, sd.BufferDesc.Format,
             sd.BufferDesc.Width, sd.BufferDesc.Height, static_cast<void*>(queue), how);
@@ -273,7 +300,10 @@ bool InitDx12(IDXGISwapChain* sc, const DXGI_SWAP_CHAIN_DESC& sd, ID3D12Device* 
         g12.freeSrv.push_back(UINT((cpu.ptr - g12.srvHeap->GetCPUDescriptorHandleForHeapStart().ptr) / g12.srvStride));
     };
     g_backendReady = ImGui_ImplDX12_Init(&info);
-    if (!g_backendReady) g_failed = true;
+    if (!g_backendReady) {
+        km::Log("DX12: ImGui backend init failed, overlay disabled");
+        g_failed = true;
+    }
     return g_backendReady;
 }
 
@@ -334,7 +364,10 @@ bool InitDx11(const DXGI_SWAP_CHAIN_DESC& sd, ID3D11Device* device)
     g11.device = device;
     device->GetImmediateContext(&g11.ctx);
     g_backendReady = ImGui_ImplDX11_Init(g11.device, g11.ctx);
-    if (!g_backendReady) g_failed = true;
+    if (!g_backendReady) {
+        km::Log("DX11: ImGui backend init failed, overlay disabled");
+        g_failed = true;
+    }
     return g_backendReady;
 }
 
@@ -551,6 +584,7 @@ bool Hook(void* target, void* detour, void* original, const char* name)
 namespace overlay {
 
 const char* ApiName() { return g_api; }
+bool Drawing() { return g_backendReady && !g_failed; }
 const std::string& GpuName() { return g_gpu; }
 
 bool Install()
