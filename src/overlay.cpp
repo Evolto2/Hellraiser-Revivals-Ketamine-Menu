@@ -46,6 +46,9 @@ std::string g_gpu;
 HWND g_hwnd;
 WNDPROC g_origWndProc;
 bool g_ecHooked;
+std::atomic<ULONGLONG> g_lastPresent; // last Present that reached us (diagnostic: another hook may swallow them)
+bool g_stallLogged;
+void* g_presentTargets[2]; // DXGI Present / Present1 code (inline hooks)
 std::atomic<bool> g_failed; // overlay off for good (init failure or exception): the game keeps running untouched
 int g_framesDrawn;          // per renderer build, for first-frame diagnostics
 
@@ -131,6 +134,10 @@ void WaitFence(UINT64 value)
 
 void STDMETHODCALLTYPE hkExecuteCommandLists(ID3D12CommandQueue* q, UINT n, ID3D12CommandList* const* lists)
 {
+    if (ULONGLONG last = g_lastPresent; last && !g_stallLogged && !g_failed && GetTickCount64() - last > 5000) {
+        g_stallLogged = true;
+        km::Log("DXGI: the game renders but no Present reached the overlay for 5 s (another overlay in the way?)");
+    }
     if (q->GetDesc().Type == D3D12_COMMAND_LIST_TYPE_DIRECT) {
         std::lock_guard lock(g_queueMutex);
         if (g_queues.size() < 8 && std::find(g_queues.begin(), g_queues.end(), q) == g_queues.end()) {
@@ -530,28 +537,122 @@ void DrawOverlay(IDXGISwapChain* sc)
     if (++g_framesDrawn == 1) km::Log("Overlay: first frame submitted");
 }
 
+void HookVtable(IDXGISwapChain* sc);
+
 void OnPresent(IDXGISwapChain* sc)
 {
     static thread_local bool busy; // Present1 may route through Present
     if (busy || g_failed) return;
     busy = true;
+    g_lastPresent = GetTickCount64();
     {
         std::lock_guard lock(g_mutex);
-        if (!Guarded("overlay frame", [&] { DrawOverlay(sc); })) g_failed = true;
+        if (!Guarded("overlay frame", [&] {
+                HookVtable(sc); // the game's swapchain class; no-op once patched
+                // Test hosts: KM_TEST_BYPASS drops the inline hooks, as RivaTuner does when it takes the prologue back.
+                static bool bypassed;
+                if (!bypassed && GetEnvironmentVariableA("KM_TEST_BYPASS", nullptr, 0)) {
+                    bypassed = true;
+                    MH_DisableHook(g_presentTargets[0]);
+                    MH_DisableHook(g_presentTargets[1]);
+                }
+                DrawOverlay(sc);
+            }))
+            g_failed = true;
     }
     busy = false;
 }
 
-HRESULT STDMETHODCALLTYPE hkPresent(IDXGISwapChain* sc, UINT sync, UINT flags)
+// Present is hooked twice. The inline hook (MinHook on DXGI's code) catches every swapchain, but tools such as
+// RivaTuner re-patch that prologue and skip us. The vtable slot of the swapchain is read before that prologue runs,
+// so a vtable hook keeps working. Under the vtable hook the inline one only records that it was reached.
+thread_local bool t_inVtable, t_inlineReached;
+bool g_bypassLogged;
+
+struct VtPatch {
+    void** vt;
+    int slot;
+    void* original;
+};
+VtPatch g_vtPatches[4];
+std::atomic<int> g_vtCount;
+
+void* VtOriginal(void* obj, int slot)
+{
+    void** vt = *static_cast<void***>(obj);
+    for (int i = 0; i < g_vtCount; i++)
+        if (g_vtPatches[i].vt == vt && g_vtPatches[i].slot == slot) return g_vtPatches[i].original;
+    return nullptr; // unreachable: only patched vtables lead here
+}
+
+void NoteInline()
+{
+    if (!t_inlineReached && !g_bypassLogged) {
+        g_bypassLogged = true;
+        km::Log("DXGI: another tool skips our Present hook (RTSSHooks64?): the overlay draws from the swapchain vtable");
+    }
+}
+
+HRESULT STDMETHODCALLTYPE hkPresentVt(IDXGISwapChain* sc, UINT sync, UINT flags)
 {
     if (!(flags & DXGI_PRESENT_TEST)) OnPresent(sc);
+    t_inVtable = true;
+    t_inlineReached = false;
+    HRESULT hr = reinterpret_cast<PresentFn>(VtOriginal(sc, kPresent))(sc, sync, flags);
+    t_inVtable = false;
+    NoteInline();
+    return hr;
+}
+
+HRESULT STDMETHODCALLTYPE hkPresent1Vt(IDXGISwapChain1* sc, UINT sync, UINT flags, const DXGI_PRESENT_PARAMETERS* params)
+{
+    if (!(flags & DXGI_PRESENT_TEST)) OnPresent(sc);
+    t_inVtable = true;
+    t_inlineReached = false;
+    HRESULT hr = reinterpret_cast<Present1Fn>(VtOriginal(sc, kPresent1))(sc, sync, flags, params);
+    t_inVtable = false;
+    NoteInline();
+    return hr;
+}
+
+HRESULT STDMETHODCALLTYPE hkPresent(IDXGISwapChain* sc, UINT sync, UINT flags)
+{
+    if (t_inVtable) t_inlineReached = true;
+    else if (!(flags & DXGI_PRESENT_TEST)) OnPresent(sc);
     return oPresent(sc, sync, flags);
 }
 
 HRESULT STDMETHODCALLTYPE hkPresent1(IDXGISwapChain1* sc, UINT sync, UINT flags, const DXGI_PRESENT_PARAMETERS* params)
 {
-    if (!(flags & DXGI_PRESENT_TEST)) OnPresent(sc);
+    if (t_inVtable) t_inlineReached = true;
+    else if (!(flags & DXGI_PRESENT_TEST)) OnPresent(sc);
     return oPresent1(sc, sync, flags, params);
+}
+
+void PatchSlot(void* obj, int slot, void* hook)
+{
+    void** vt = *static_cast<void***>(obj);
+    for (int i = 0; i < g_vtCount; i++)
+        if (g_vtPatches[i].vt == vt && g_vtPatches[i].slot == slot) return;
+    int n = g_vtCount;
+    if (n == int(std::size(g_vtPatches)) || vt[slot] == hook) return;
+    DWORD old;
+    if (!VirtualProtect(&vt[slot], sizeof(void*), PAGE_READWRITE, &old)) return;
+    g_vtPatches[n] = {vt, slot, vt[slot]};
+    g_vtCount = n + 1; // published before the slot points at us
+    vt[slot] = hook;
+    VirtualProtect(&vt[slot], sizeof(void*), old, &old);
+    km::Log("DXGI: swapchain vtable %p slot %d hooked", static_cast<void*>(vt), slot);
+}
+
+void HookVtable(IDXGISwapChain* sc)
+{
+    PatchSlot(sc, kPresent, reinterpret_cast<void*>(&hkPresentVt));
+    IDXGISwapChain1* sc1 = nullptr;
+    if (SUCCEEDED(sc->QueryInterface(IID_PPV_ARGS(&sc1)))) {
+        PatchSlot(sc1, kPresent1, reinterpret_cast<void*>(&hkPresent1Vt));
+        sc1->Release();
+    }
 }
 
 // ---------------------------------------------------------------- install
@@ -625,10 +726,12 @@ bool Install()
     bool ok = false;
     if (SUCCEEDED(hr)) {
         void** vt = *reinterpret_cast<void***>(sc);
+        g_presentTargets[0] = vt[kPresent];
         ok = Hook(vt[kPresent], &hkPresent, &oPresent, "Present");
         IDXGISwapChain1* sc1 = nullptr;
         if (SUCCEEDED(sc->QueryInterface(IID_PPV_ARGS(&sc1)))) {
-            Hook((*reinterpret_cast<void***>(sc1))[kPresent1], &hkPresent1, &oPresent1, "Present1");
+            g_presentTargets[1] = (*reinterpret_cast<void***>(sc1))[kPresent1];
+            Hook(g_presentTargets[1], &hkPresent1, &oPresent1, "Present1");
             sc1->Release();
         }
     } else {
