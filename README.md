@@ -104,7 +104,7 @@ out with the reason in a tooltip instead of crashing.
 **World**
 - Time scale (slow motion / fast forward)
 - Freeze enemies, kill enemies nearby
-- Field of view, hide HUD
+- FOV editor (50° to 130°, live), hide HUD
 
 **Progress**
 - See active and completed objectives, complete one, change the shop level
