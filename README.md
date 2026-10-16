@@ -12,7 +12,7 @@
 <p align="center">
   <a href="https://github.com/literalynn/Hellraiser-Revivals-Ketamine-Menu/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/literalynn/Hellraiser-Revivals-Ketamine-Menu?color=AC6EE2&label=download"></a>
   <a href="https://github.com/literalynn/Hellraiser-Revivals-Ketamine-Menu/actions/workflows/build.yml"><img alt="Build" src="https://github.com/literalynn/Hellraiser-Revivals-Ketamine-Menu/actions/workflows/build.yml/badge.svg"></a>
-  <img alt="Game version" src="https://img.shields.io/badge/game-1.0.1.227219-F89FCD">
+  <img alt="Game version" src="https://img.shields.io/badge/game-1.1.1.227384-F89FCD">
   <img alt="Platform" src="https://img.shields.io/badge/platform-Windows%2010%20%2F%2011%20x64-1B1B23">
   <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-AC6EE2"></a>
 </p>
@@ -52,6 +52,9 @@ Clive Barker's Hellraiser - Revival\
          ├─ winmm.dll            ← Ketamine Menu
          └─ KetamineMenu.ini     ← optional, created automatically otherwise
 ```
+
+**Vortex / manual "extract to game folder":** use `KetamineMenu-vX.Y.Z-Nexus.zip` instead. It already contains the
+`Hellraiser\Binaries\Win64\` folders, so Vortex installs it in the right place, or you can extract it straight into the game folder.
 
 > [!TIP]
 > If <kbd>Insert</kbd> does nothing, open `KetamineMenu.log` next to the DLL: it says exactly what was found and what wasn't.
@@ -143,7 +146,8 @@ out with the reason in a tooltip instead of crashing.
 
 ## Compatibility
 
-- **Game:** tested with version `1.0.1.227219` (Steam). Other versions may work: anything that can't be found is greyed out.
+- **Game:** tested with version `1.1.1.227384` (Steam, October 2026 update) and `1.0.1.227219`. Other versions may work:
+  anything that can't be found is greyed out.
 - **Renderer:** DirectX 12 (the default) and DirectX 11.
 - **Other mods:** the menu uses `winmm.dll`, so it doesn't collide with ReShade (`dxgi.dll`) or UE4SS (`dwmapi.dll`).
 - **Frame generation** (DLSS-G, FSR, XeSS FG): supported, but if the menu flickers, turn frame generation off.
@@ -189,7 +193,8 @@ from your last session (it is overwritten every time the game starts).
 
 ## Uninstall
 
-Delete `winmm.dll`, `KetamineMenu.ini` and `KetamineMenu.log` from `Hellraiser\Binaries\Win64`. No game file is ever modified.
+Delete `winmm.dll`, `KetamineMenu.ini`, `KetamineMenu.log` (and `KetamineMenu-LICENSE.txt` if you used the Nexus zip) from
+`Hellraiser\Binaries\Win64`. With Vortex, remove the mod, then delete the `.ini` and `.log` it leaves behind. No game file is ever modified.
 
 ## Build from source
 

@@ -1,0 +1,1 @@
+Clean in-game trainer menu (Insert): god mode, infinite ammo, no Suffering cost, fly/noclip, free camera, ESP (box, skeleton, chams, loot), give any item, money, time scale, teleports, hotkeys. One DLL, nothing to install, no game file modified. Single-player, open source.

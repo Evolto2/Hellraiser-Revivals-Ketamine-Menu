@@ -737,7 +737,7 @@ void Sidebar()
     ImGui::EndChild();
 }
 
-// Spec line: GAME 1.0.1.227219   CPU Ryzen 7 9800X3D   GPU GeForce RTX 5090 32 GB   RAM 64 GB   DISPLAY 2560 × 1440   FPS 144
+// Spec line: GAME 1.1.1.227384   CPU Ryzen 7 9800X3D   GPU GeForce RTX 5090 32 GB   RAM 64 GB   DISPLAY 2560 × 1440   FPS 144
 void Footer()
 {
     float s = S(), size = kBaseFont * 0.78f * s, labelSize = kBaseFont * 0.66f * s;
@@ -812,7 +812,7 @@ void Init(void* dllModule, const std::string& gameVersion)
 {
     g_module = static_cast<HMODULE>(dllModule);
     g_game = gameVersion.substr(0, gameVersion.find('_')); // "1.0.1.227219_HellraiserGame_Shipping..."
-    if (g_game.empty() && GetEnvironmentVariableA("KM_PREVIEW", nullptr, 0)) g_game = "1.0.1.227219"; // test host
+    if (g_game.empty() && GetEnvironmentVariableA("KM_PREVIEW", nullptr, 0)) g_game = "1.1.1.227384"; // test host
     g_menuKey = unsigned(cfg::GetInt("Menu", "Key", VK_INSERT));
     g_scale = cfg::GetFloat("Menu", "Scale", 0);
     if (g_scale > 0) g_scale = std::clamp(g_scale, 0.7f, 2.5f);

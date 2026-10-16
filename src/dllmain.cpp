@@ -43,6 +43,11 @@ static void Main(HMODULE self)
     menu::Init(self, ver); // settings + game-thread tick, before any hook can call into them
     km::Log("Overlay: %s", overlay::Install() ? "hooks installed" : "disabled");
     ue::Init(g_mainThread);
+
+#ifdef KM_DUMPER // dev build only (cmake -DKM_DUMPER=ON): re-dump the SDK after a game patch
+    if (auto d7 = km::g_dir + L"Dumper-7.dll"; GetFileAttributesW(d7.c_str()) != INVALID_FILE_ATTRIBUTES)
+        km::Log("Dumper-7: %s", LoadLibraryW(d7.c_str()) ? "loaded" : "load failed");
+#endif
 }
 
 BOOL APIENTRY DllMain(HMODULE self, DWORD reason, LPVOID)

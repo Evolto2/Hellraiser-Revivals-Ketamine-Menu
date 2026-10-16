@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.25)
-project(KetamineMenu VERSION 0.4.3 LANGUAGES C CXX)
+project(KetamineMenu VERSION 0.4.4 LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -42,6 +42,10 @@ add_library(KetamineMenu SHARED src/dllmain.cpp src/overlay.cpp src/menu.cpp src
 set_target_properties(KetamineMenu PROPERTIES OUTPUT_NAME winmm)
 target_compile_definitions(KetamineMenu PRIVATE KM_VERSION="${PROJECT_VERSION}" WIN32_LEAN_AND_MEAN NOMINMAX)
 target_compile_options(KetamineMenu PRIVATE /W4 /utf-8)
+option(KM_DUMPER "Dev build that loads Dumper-7.dll from the game folder (SDK re-dump after a patch)" OFF)
+if(KM_DUMPER)
+    target_compile_definitions(KetamineMenu PRIVATE KM_DUMPER)
+endif()
 target_link_libraries(KetamineMenu PRIVATE imgui minhook dxgi delayimp)
 # Load these only when the overlay initialises, not at game startup.
 target_link_options(KetamineMenu PRIVATE /DELAYLOAD:d3dcompiler_47.dll /DELAYLOAD:dxgi.dll)
