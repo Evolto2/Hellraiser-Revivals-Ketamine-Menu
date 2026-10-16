@@ -1,6 +1,7 @@
 #include "overlay.h"
 #include "log.h"
 #include "menu.h"
+#include "ue.h"
 
 #include <d3d11.h>
 #include <d3d12.h>
@@ -11,6 +12,7 @@
 #include <imgui_impl_win32.h>
 #include <MinHook.h>
 
+#include <algorithm>
 #include <atomic>
 #include <chrono>
 #include <mutex>
@@ -34,14 +36,18 @@ ExecuteCommandListsFn oExecuteCommandLists;
 
 // ImGui runs on the render thread while input arrives on the game thread: everything below is guarded by g_mutex.
 std::timed_mutex g_mutex;
-std::atomic<ID3D12CommandQueue*> g_capturedQueue; // fallback when the swapchain won't give us its queue
+// Direct queues seen in ExecuteCommandLists (AddRef'd, kept): the swapchain won't hand out its queue on every setup.
+std::mutex g_queueMutex;
+std::vector<ID3D12CommandQueue*> g_queues;
+int g_queueWait; // frames waited for the presenting queue to show up before settling for another one
 const char* g_api = "...";
 std::string g_gpu;
 
 HWND g_hwnd;
 WNDPROC g_origWndProc;
 bool g_ecHooked;
-bool g_failed; // renderer init failed for good: stop trying, the game keeps running untouched
+std::atomic<bool> g_failed; // overlay off for good (init failure or exception): the game keeps running untouched
+int g_framesDrawn;          // per renderer build, for first-frame diagnostics
 
 // What the renderer was built for. Back buffers are fetched per frame (never held), so only these force a rebuild.
 struct Key {
@@ -102,7 +108,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 {
     // Menu key, hotkeys and key binding (bit 30 = auto-repeat).
     if ((msg == WM_KEYDOWN || msg == WM_SYSKEYDOWN) && !(lp & (1 << 30)) && menu::OnKeyDown(UINT(wp))) return 0;
-    if (menu::IsOpen()) {
+    if (menu::IsOpen() && !g_failed) {
         // Bounded wait: never let the game's window thread hang on the render thread.
         if (std::unique_lock lock(g_mutex, std::chrono::milliseconds(100)); lock.owns_lock())
             ImGui_ImplWin32_WndProcHandler(hwnd, msg, wp, lp);
@@ -124,12 +130,36 @@ void WaitFence(UINT64 value)
 
 void STDMETHODCALLTYPE hkExecuteCommandLists(ID3D12CommandQueue* q, UINT n, ID3D12CommandList* const* lists)
 {
-    if (!g_capturedQueue.load() && q->GetDesc().Type == D3D12_COMMAND_LIST_TYPE_DIRECT) {
-        q->AddRef();
-        g_capturedQueue = q;
-        km::Log("DX12: captured direct queue %p via ExecuteCommandLists", static_cast<void*>(q));
+    if (q->GetDesc().Type == D3D12_COMMAND_LIST_TYPE_DIRECT) {
+        std::lock_guard lock(g_queueMutex);
+        if (g_queues.size() < 8 && std::find(g_queues.begin(), g_queues.end(), q) == g_queues.end()) {
+            q->AddRef();
+            g_queues.push_back(q);
+            km::Log("DX12: direct queue %p seen in ExecuteCommandLists", static_cast<void*>(q));
+        }
     }
     oExecuteCommandLists(q, n, lists);
+}
+
+// The queue the swapchain presents on. With frame generation or another overlay the game submits to several direct
+// queues, and drawing on one that doesn't present races the present (corruption or device removal).
+ID3D12CommandQueue* FindPresentQueue(IDXGISwapChain* sc, ID3D12Device* device, bool& inSwapchain)
+{
+    // DXGI keeps a pointer to its queue inside the swapchain object: look for a queue we know there.
+    uintptr_t mem[512] = {};
+    bool scanned = ue::SafeRead(sc, mem, sizeof(mem)) || ue::SafeRead(sc, mem, sizeof(mem) / 4);
+    std::lock_guard lock(g_queueMutex);
+    ID3D12CommandQueue* first = nullptr;
+    for (ID3D12CommandQueue* q : g_queues) {
+        ID3D12Device* d = nullptr;
+        bool sameDevice = SUCCEEDED(q->GetDevice(IID_PPV_ARGS(&d))) && d == device;
+        SafeRelease(d);
+        if (!sameDevice) continue;
+        inSwapchain = scanned && std::find(std::begin(mem), std::end(mem), reinterpret_cast<uintptr_t>(q)) != std::end(mem);
+        if (inSwapchain) return q;
+        if (!first) first = q;
+    }
+    return first;
 }
 
 void HookExecuteCommandLists(ID3D12Device* device)
@@ -168,18 +198,18 @@ void ShutdownDx12()
 bool InitDx12(IDXGISwapChain* sc, const DXGI_SWAP_CHAIN_DESC& sd, ID3D12Device* device)
 {
     ID3D12CommandQueue* queue = nullptr;
-    bool fromSwapchain = SUCCEEDED(sc->GetDevice(IID_PPV_ARGS(&queue)));
-    if (!fromSwapchain) {
-        queue = g_capturedQueue.load();
-        if (!queue) {
-            if (!g_ecHooked) HookExecuteCommandLists(device);
-            return false;
-        }
+    const char* how = "from swapchain";
+    if (FAILED(sc->GetDevice(IID_PPV_ARGS(&queue)))) {
+        if (!g_ecHooked) HookExecuteCommandLists(device);
+        bool inSwapchain = false;
+        queue = FindPresentQueue(sc, device, inSwapchain);
+        // Not referenced by the swapchain yet: give its queue ~2 s of frames to submit before settling.
+        if (!queue || (!inSwapchain && ++g_queueWait < 120)) return false;
+        how = inSwapchain ? "found in swapchain" : "first direct queue of the device";
         queue->AddRef();
     }
     km::Log("DX12: %u buffers, format %d, %ux%u, queue %p (%s)", sd.BufferCount, sd.BufferDesc.Format,
-            sd.BufferDesc.Width, sd.BufferDesc.Height, static_cast<void*>(queue),
-            fromSwapchain ? "from swapchain" : "captured");
+            sd.BufferDesc.Width, sd.BufferDesc.Height, static_cast<void*>(queue), how);
 
     device->AddRef();
     g12.device = device;
@@ -280,6 +310,11 @@ void RenderDx12(IDXGISwapChain* sc)
     g12.queue->Signal(g12.fence, ++g12.fenceCounter);
     f.fenceValue = g12.fenceCounter;
     buffer->Release();
+    if (HRESULT r = g12.device->GetDeviceRemovedReason(); FAILED(r)) {
+        km::Log("DX12: device removed (0x%08lX) after %d overlay frames, overlay disabled",
+                static_cast<unsigned long>(r), g_framesDrawn);
+        g_failed = true;
+    }
 }
 
 // ---------------------------------------------------------------- DX11
@@ -324,6 +359,46 @@ void ShutdownRenderer()
     if (g12.device || g12.queue) ShutdownDx12();
     g_backendReady = false;
     g_key = {};
+    g_framesDrawn = 0;
+}
+
+// Frame generation and other overlays change how frames reach the screen: name them so a log can explain a crash.
+void LogEnvironment()
+{
+    std::string found;
+    for (const wchar_t* m : {L"sl.interposer.dll", L"sl.dlss_g.dll", L"amd_fidelityfx_framegeneration_dx12.dll",
+                             L"libxess_fg.dll", L"GameOverlayRenderer64.dll", L"RTSSHooks64.dll", L"DiscordHook64.dll",
+                             L"nvspcap64.dll", L"ReShade64.dll"})
+        if (GetModuleHandleW(m)) found += km::Utf8(m) + " ";
+    wchar_t dxgi[MAX_PATH] = L"?";
+    if (HMODULE h = GetModuleHandleW(L"dxgi.dll")) GetModuleFileNameW(h, dxgi, MAX_PATH);
+    km::Log("Loaded: %s| dxgi.dll: %ls", found.empty() ? "nothing notable " : found.c_str(), dxgi);
+}
+
+// Logs where an exception hit (module + offset): a log from a setup that crashes then says what broke.
+int CrashFilter(const char* step, EXCEPTION_POINTERS* ep)
+{
+    void* at = ep->ExceptionRecord->ExceptionAddress;
+    HMODULE mod = nullptr;
+    wchar_t path[MAX_PATH] = L"?";
+    if (GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+                           static_cast<LPCWSTR>(at), &mod))
+        GetModuleFileNameW(mod, path, MAX_PATH);
+    const wchar_t* name = wcsrchr(path, L'\\') ? wcsrchr(path, L'\\') + 1 : path;
+    km::Log("Overlay disabled: exception 0x%08lX during %s at %ls+0x%llX", ep->ExceptionRecord->ExceptionCode, step,
+            name, static_cast<unsigned long long>(reinterpret_cast<uintptr_t>(at) - reinterpret_cast<uintptr_t>(mod)));
+    return EXCEPTION_EXECUTE_HANDLER;
+}
+
+// Runs f; an exception turns the overlay off instead of taking the game down (/EHa: locks are released on the way).
+template <class F> bool Guarded(const char* step, F&& f)
+{
+    __try {
+        f();
+        return true;
+    } __except (CrashFilter(step, GetExceptionInformation())) {
+        return false;
+    }
 }
 
 void InitImGui(HWND hwnd)
@@ -376,7 +451,10 @@ bool EnsureRenderer(IDXGISwapChain* sc)
 {
     DXGI_SWAP_CHAIN_DESC sd;
     if (FAILED(sc->GetDesc(&sd))) return false;
-    if (!g_hwnd) InitImGui(sd.OutputWindow);
+    if (!g_hwnd) {
+        LogEnvironment();
+        InitImGui(sd.OutputWindow);
+    }
 
     ID3D12Device* d12 = nullptr;
     ID3D11Device* d11 = nullptr;
@@ -402,6 +480,23 @@ bool EnsureRenderer(IDXGISwapChain* sc)
     return ok;
 }
 
+void DrawOverlay(IDXGISwapChain* sc)
+{
+    // Menu closed and no toast: nothing is rendered.
+    if (!EnsureRenderer(sc) || !menu::WantsFrame()) return;
+    if (g_framesDrawn == 0) km::Log("Overlay: first frame (%s)", g_api);
+    if (menu::IsOpen()) ClipCursor(nullptr);
+    if (g11.device) ImGui_ImplDX11_NewFrame();
+    else ImGui_ImplDX12_NewFrame();
+    ImGui_ImplWin32_NewFrame();
+    ImGui::NewFrame();
+    menu::Draw();
+    ImGui::Render();
+    if (g11.device) RenderDx11(sc);
+    else RenderDx12(sc);
+    if (++g_framesDrawn == 1) km::Log("Overlay: first frame submitted");
+}
+
 void OnPresent(IDXGISwapChain* sc)
 {
     static thread_local bool busy; // Present1 may route through Present
@@ -409,18 +504,7 @@ void OnPresent(IDXGISwapChain* sc)
     busy = true;
     {
         std::lock_guard lock(g_mutex);
-        // Menu closed and no toast: nothing is rendered.
-        if (EnsureRenderer(sc) && menu::WantsFrame()) {
-            if (menu::IsOpen()) ClipCursor(nullptr);
-            if (g11.device) ImGui_ImplDX11_NewFrame();
-            else ImGui_ImplDX12_NewFrame();
-            ImGui_ImplWin32_NewFrame();
-            ImGui::NewFrame();
-            menu::Draw();
-            ImGui::Render();
-            if (g11.device) RenderDx11(sc);
-            else RenderDx12(sc);
-        }
+        if (!Guarded("overlay frame", [&] { DrawOverlay(sc); })) g_failed = true;
     }
     busy = false;
 }

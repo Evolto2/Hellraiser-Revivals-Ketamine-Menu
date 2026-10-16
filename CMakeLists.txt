@@ -1,10 +1,12 @@
 cmake_minimum_required(VERSION 3.25)
-project(KetamineMenu VERSION 0.4.4 LANGUAGES C CXX)
+project(KetamineMenu VERSION 0.4.5 LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # Static CRT: friends need no VC++ redistributable.
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+# /EHa: the overlay catches exceptions with __try (Guarded); C++ destructors, and so mutex unlocks, must still run.
+string(REPLACE "/EHsc" "/EHa" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 
 include(FetchContent)
 # Pinned archives + hashes. SOURCE_SUBDIR points nowhere so we only download and build the files we pick below.
