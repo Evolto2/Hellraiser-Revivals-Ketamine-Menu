@@ -11,6 +11,7 @@
 
 <p align="center">
   <a href="https://github.com/literalynn/Hellraiser-Revivals-Ketamine-Menu/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/literalynn/Hellraiser-Revivals-Ketamine-Menu?color=AC6EE2&label=download"></a>
+  <a href="https://www.nexusmods.com/clivebarkershellraiserrevival/mods/27"><img alt="Nexus Mods" src="https://img.shields.io/badge/Nexus%20Mods-Ketamine%20Menu-F89FCD"></a>
   <a href="https://github.com/literalynn/Hellraiser-Revivals-Ketamine-Menu/actions/workflows/build.yml"><img alt="Build" src="https://github.com/literalynn/Hellraiser-Revivals-Ketamine-Menu/actions/workflows/build.yml/badge.svg"></a>
   <img alt="Game version" src="https://img.shields.io/badge/game-1.1.1.227384-F89FCD">
   <img alt="Platform" src="https://img.shields.io/badge/platform-Windows%2010%20%2F%2011%20x64-1B1B23">
@@ -53,7 +54,9 @@ Clive Barker's Hellraiser - Revival\
          └─ KetamineMenu.ini     ← optional, created automatically otherwise
 ```
 
-**Vortex / manual "extract to game folder":** use `KetamineMenu-vX.Y.Z-Nexus.zip` instead. It already contains the
+**Vortex:** get it from the [Nexus Mods page](https://www.nexusmods.com/clivebarkershellraiserrevival/mods/27) with *Mod Manager Download*.
+
+**Manual "extract to game folder":** use `KetamineMenu-vX.Y.Z-Nexus.zip` instead. It already contains the
 `Hellraiser\Binaries\Win64\` folders, so Vortex installs it in the right place, or you can extract it straight into the game folder.
 
 > [!TIP]
