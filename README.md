@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/hero.jpg" alt="Hellraiser Revival's Ketamine Menu running over the game's title screen" width="100%">
+  <img src="docs/banner.png" alt="Hellraiser Revival's Ketamine Menu over the game's Lament Configuration" width="100%">
 </p>
 
 <h1 align="center">Hellraiser Revival's Ketamine Menu</h1>
