@@ -1,28 +1,44 @@
 [center][img]https://raw.githubusercontent.com/literalynn/Hellraiser-Revivals-Ketamine-Menu/main/docs/hero.jpg[/img]
 
 [size=6][b][color=#AC6EE2]Hellraiser Revival's Ketamine Menu[/color][/b][/size]
-[size=3]A clean in-game trainer for Clive Barker's Hellraiser: Revival.
-One file, press [b][color=#F89FCD]Insert[/color][/b], done.[/size][/center]
+[size=4]The all-in-one in-game trainer for Clive Barker's Hellraiser: Revival.[/size]
+[size=3]One file. Press [b][color=#F89FCD]Insert[/color][/b]. Done.[/size]
+
+[url=https://github.com/literalynn/Hellraiser-Revivals-Ketamine-Menu][b]Source code on GitHub[/b][/url]  ·  [url=https://github.com/literalynn/Hellraiser-Revivals-Ketamine-Menu/releases][b]Releases[/b][/url]  ·  [url=https://github.com/literalynn/Hellraiser-Revivals-Ketamine-Menu/issues][b]Report a bug[/b][/url][/center]
 
 [line]
 
-[size=4][b][color=#F89FCD]Important[/color][/b][/size]
+[size=4][b][color=#F89FCD]Why this one[/color][/b][/size]
 [list]
-[*][b]Single-player only.[/b] The menu has no online features, but the game talks to its publisher's online services:
-play in [b]Steam offline mode[/b] while it is installed.
-[*][b]Back up your saves[/b] before you start: [code]%LOCALAPPDATA%\Hellraiser\Saved\SaveGames[/code]
-[*]No game file is ever modified. Uninstalling = deleting the files listed below.
+[*][b]One DLL, nothing else.[/b] No UE4SS, no Cheat Engine, no launcher, no Visual C++ redistributable.
+[*][b]No game file modified.[/b] Uninstalling is deleting one file.
+[*][b]Clean overlay.[/b] A real in-game menu (DirectX 12 and 11), mouse and keyboard, with tooltips on every option.
+[*][b]Zero footprint when closed.[/b] Nothing is drawn and your input is untouched, apart from the ESP and hotkeys you turn on.
+[*][b]Update-proof by design.[/b] It finds the game's data by name at runtime. If an update removes something, that option is greyed out with the reason, instead of crashing your game.
+[*][b]Open source (MIT).[/b] Every release is built from the public code by GitHub Actions.
 [/list]
 
 [line]
 
-[size=4][b][color=#AC6EE2]Features[/color][/b][/size]
-Every option finds the game's data [b]by name[/b] at runtime. If a game update removes something, that option is greyed out with
-the reason in a tooltip instead of crashing.
+[center][img]https://raw.githubusercontent.com/literalynn/Hellraiser-Revivals-Ketamine-Menu/main/docs/nexus/card-01-player.jpg[/img]
 
+[img]https://raw.githubusercontent.com/literalynn/Hellraiser-Revivals-Ketamine-Menu/main/docs/nexus/card-02-combat.jpg[/img]
+
+[img]https://raw.githubusercontent.com/literalynn/Hellraiser-Revivals-Ketamine-Menu/main/docs/nexus/card-03-movement.jpg[/img]
+
+[img]https://raw.githubusercontent.com/literalynn/Hellraiser-Revivals-Ketamine-Menu/main/docs/nexus/card-04-esp.jpg[/img]
+
+[img]https://raw.githubusercontent.com/literalynn/Hellraiser-Revivals-Ketamine-Menu/main/docs/nexus/card-05-world.jpg[/img]
+
+[img]https://raw.githubusercontent.com/literalynn/Hellraiser-Revivals-Ketamine-Menu/main/docs/nexus/card-06-settings.jpg[/img][/center]
+
+[line]
+
+[size=4][b][color=#AC6EE2]Full feature list[/color][/b][/size]
+[spoiler]
 [b]Player[/b]
 [list]
-[*]God mode, infinite health, health slider
+[*]God mode, infinite health, health slider (set any value)
 [*]No sprint cooldown (the game has no stamina)
 [*]Invisible to enemies
 [*]One-hit kill, damage multiplier
@@ -43,101 +59,89 @@ the reason in a tooltip instead of crashing.
 [list]
 [*]Enemies: box, health bar, name, distance, skeleton, head marker, chams, snaplines, off-screen arrows
 [*]World: items on the ground, loot containers, save points
+[*]Separate range for enemies and objects
 [/list]
 [b]Inventory[/b]
 [list]
 [*]Add or remove money
-[*]Give any item: ammo, weapons, upgrades, healing, materials (list built from the game itself)
+[*]Give any item in any amount: ammo, weapons, upgrades, healing, materials (list built from the game itself)
 [*]Unlock weapon skins & charms
 [/list]
-[b]World / Progress[/b]
+[b]World[/b]
 [list]
-[*]Time scale, freeze enemies, kill enemies nearby, field of view, hide HUD
+[*]Time scale (slow motion / fast forward)
+[*]Freeze enemies, kill enemies nearby
+[*]Field of view, hide HUD
+[/list]
+[b]Progress[/b]
+[list]
 [*]See active and completed objectives, complete one, change the shop level
 [/list]
-[b]Quality of life[/b]
+[b]Settings[/b]
 [list]
-[*]Any switch can get its own hotkey (works with the menu closed, with a small notification)
+[*]A hotkey for any switch (works with the menu closed, with a small notification)
 [*]Rebindable menu key, UI scale, settings saved automatically
 [*]Footer with game version, CPU, GPU, RAM, resolution and FPS
 [/list]
+[/spoiler]
 
 [line]
 
 [size=4][b][color=#F89FCD]Installation[/color][/b][/size]
-[b]Vortex:[/b] click [i]Mod Manager Download[/i], then enable and deploy the mod. That's it.
+[b]Vortex:[/b] click [b]Mod Manager Download[/b], then enable and deploy. Vortex puts it in the right folder by itself.
 
 [b]Manual:[/b]
 [list=1]
 [*]In Steam: right-click the game → [i]Manage[/i] → [i]Browse local files[/i].
-[*]Extract the zip [b]into that folder[/b] (the one that contains the [code]Hellraiser[/code] folder). [code]winmm.dll[/code] must end up in:
-[code]Clive Barker's Hellraiser - Revival\Hellraiser\Binaries\Win64\winmm.dll[/code]
-(next to [code]Hellraiser-Win64-Shipping.exe[/code]).
+[*]Extract the zip [b]into that folder[/b] (the one that contains the [i]Hellraiser[/i] folder). You should end up with:
+[code]Hellraiser\Binaries\Win64\winmm.dll[/code]
+next to [i]Hellraiser-Win64-Shipping.exe[/i].
 [*]Start the game, load a save, press [b]Insert[/b].
 [/list]
-No Visual C++ redistributable or launcher needed.
 
-[line]
-
-[size=4][b][color=#AC6EE2]Usage[/color][/b][/size]
+[size=4][b][color=#AC6EE2]Before you play[/color][/b][/size]
 [list]
-[*][b]Insert[/b] opens / closes the menu (rebindable in Settings). While it is open, the mouse controls the menu and the game ignores your input.
-[*]Hover any option to see what it does, or why it is unavailable.
-[*]Settings are saved to [code]KetamineMenu.ini[/code] next to the DLL. [i]Settings → Reset configuration[/i] restores the defaults.
-[*]Giving key items or completing objectives can break scripted sequences: [b]save first[/b].
+[*][b]Single-player only.[/b] The menu has no online features, but the game talks to its publisher's online services: play in [b]Steam offline mode[/b] while it is installed.
+[*][b]Back up your saves[/b] first: [i]%LOCALAPPDATA%\Hellraiser\Saved\SaveGames[/i]
+[*]Giving key items or completing objectives can break scripted sequences: [b]save before you use them[/b].
 [/list]
-
-[line]
 
 [size=4][b][color=#F89FCD]Compatibility[/color][/b][/size]
 [list]
-[*][b]Game:[/b] tested with 1.1.1.227384 (October 2026 update) and 1.0.1.227219, Steam.
+[*][b]Game:[/b] 1.1.1.227384 (October 2026 update) and 1.0.1.227219, Steam.
 [*][b]Renderer:[/b] DirectX 12 (default) and DirectX 11.
-[*][b]Other mods:[/b] uses [code]winmm.dll[/code], so it doesn't collide with ReShade ([code]dxgi.dll[/code]) or UE4SS ([code]dwmapi.dll[/code]).
-[*][b]Frame generation[/b] (DLSS-G, FSR, XeSS FG): supported; if the menu flickers, turn frame generation off.
+[*][b]Other mods:[/b] uses [i]winmm.dll[/i], so it works alongside ReShade ([i]dxgi.dll[/i]) and UE4SS ([i]dwmapi.dll[/i]).
+[*][b]Frame generation[/b] (DLSS-G, FSR, XeSS FG): supported. If the menu flickers, turn frame generation off.
 [/list]
 
-[line]
-
 [size=4][b][color=#AC6EE2]Uninstall[/color][/b][/size]
-[b]Vortex:[/b] remove the mod, then delete [code]KetamineMenu.ini[/code] and [code]KetamineMenu.log[/code] that the menu created.
-[b]Manual:[/b] delete [code]winmm.dll[/code], [code]KetamineMenu-LICENSE.txt[/code], [code]KetamineMenu.ini[/code] and [code]KetamineMenu.log[/code]
-from [code]Hellraiser\Binaries\Win64[/code].
+[b]Vortex:[/b] remove the mod, then delete [i]KetamineMenu.ini[/i] and [i]KetamineMenu.log[/i] that the menu created.
+[b]Manual:[/b] delete [i]winmm.dll[/i], [i]KetamineMenu-LICENSE.txt[/i], [i]KetamineMenu.ini[/i] and [i]KetamineMenu.log[/i] from [i]Hellraiser\Binaries\Win64[/i].
 
 [line]
 
 [size=4][b][color=#F89FCD]Troubleshooting[/color][/b][/size]
 [spoiler]
 [b]Insert does nothing[/b]
-Check that [code]winmm.dll[/code] is in [code]Hellraiser\Binaries\Win64[/code], not in the top game folder. Open [code]KetamineMenu.log[/code]
-in the same folder: if it doesn't exist, the DLL wasn't loaded (check the folder and your antivirus).
+Check that [i]winmm.dll[/i] is in [i]Hellraiser\Binaries\Win64[/i], not in the top game folder. Open [i]KetamineMenu.log[/i] in the same folder: if it doesn't exist, the DLL wasn't loaded (check the folder and your antivirus).
 
 [b]Everything is greyed out[/b]
-Load a save first: most options need the player to exist. If the header says [i]Engine not hooked[/i], the game version changed in a
-way the menu can't handle yet: post in the Bugs tab with your [code]KetamineMenu.log[/code].
+Load a save first: most options need the player to exist. If the header says [i]Engine not hooked[/i], the game version changed in a way the menu can't handle yet: post in the Bugs tab with your [i]KetamineMenu.log[/i].
 
 [b]My antivirus flags the DLL[/b]
-Trainers hook into a game's rendering and memory, which antivirus heuristics dislike. It's a false positive: the full source code is
-on GitHub and every release is built from it by GitHub Actions. You can also build it yourself.
+Trainers hook into a game's rendering and memory, which antivirus heuristics dislike. It's a false positive: the full source code is on GitHub and every release is built from it by GitHub Actions. You can also build it yourself.
 [/spoiler]
 
-[b]Bug reports:[/b] use the Bugs tab here or [url=https://github.com/literalynn/Hellraiser-Revivals-Ketamine-Menu/issues]GitHub issues[/url],
-with what you did, what happened, and your [code]KetamineMenu.log[/code] (overwritten each time the game starts).
+[b]Found a bug?[/b] Use the Bugs tab or [url=https://github.com/literalynn/Hellraiser-Revivals-Ketamine-Menu/issues]GitHub issues[/url], with what you did, what happened, and your [i]KetamineMenu.log[/i] (overwritten each time the game starts).
 
 [line]
 
-[size=4][b][color=#AC6EE2]Screenshots[/color][/b][/size]
-[center][img]https://raw.githubusercontent.com/literalynn/Hellraiser-Revivals-Ketamine-Menu/main/docs/menu-player.png[/img]
-[img]https://raw.githubusercontent.com/literalynn/Hellraiser-Revivals-Ketamine-Menu/main/docs/menu-esp.png[/img][/center]
-
-[line]
-
-[size=4][b][color=#F89FCD]Source code & credits[/color][/b][/size]
+[size=4][b][color=#AC6EE2]Credits[/color][/b][/size]
 [list]
-[*]Open source (MIT): [url=https://github.com/literalynn/Hellraiser-Revivals-Ketamine-Menu]github.com/literalynn/Hellraiser-Revivals-Ketamine-Menu[/url]
-[*][url=https://github.com/ocornut/imgui]Dear ImGui[/url] (MIT), [url=https://github.com/TsudaKageyu/minhook]MinHook[/url] (BSD-2-Clause),
-[url=https://github.com/rsms/inter]Inter[/url] font (SIL OFL 1.1), [url=https://github.com/Encryqed/Dumper-7]Dumper-7[/url] (used to study the game's classes)
+[*][url=https://github.com/ocornut/imgui]Dear ImGui[/url] (MIT) and [url=https://github.com/TsudaKageyu/minhook]MinHook[/url] (BSD-2-Clause)
+[*][url=https://github.com/rsms/inter]Inter[/url] font (SIL Open Font License 1.1)
+[*][url=https://github.com/Encryqed/Dumper-7]Dumper-7[/url], used to study the game's classes
 [/list]
 
-[size=2]Fan-made tool for single-player use. Not affiliated with or endorsed by Saber Interactive, Boss Team Games or Clive Barker.
-All trademarks belong to their respective owners. Use at your own risk.[/size]
+[center][size=2]Fan-made tool for single-player use. Not affiliated with or endorsed by Saber Interactive, Boss Team Games or Clive Barker.
+All trademarks belong to their respective owners. Use at your own risk.[/size][/center]
