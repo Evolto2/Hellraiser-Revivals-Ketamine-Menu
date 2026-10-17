@@ -1,13 +1,13 @@
-name: Build
+name: Build Chinese release
 
 on:
   push:
     branches: [main]
-    tags: ["v*"]
+    tags: ["zh-v*"]
   pull_request:
 
 permissions:
-  contents: write # attach the zip to releases
+  contents: write
 
 jobs:
   build:
@@ -21,36 +21,21 @@ jobs:
       - name: Build
         run: cmake --build build --config Release
 
-      - name: Test
-        run: ctest --test-dir build -C Release --output-on-failure
-
       - name: Package
         shell: pwsh
         run: |
-          $name = "KetamineMenu-${{ github.ref_name }}".Replace('/', '-')
+          $name = "KetamineMenu-$env:GITHUB_REF_NAME"
           New-Item -ItemType Directory -Path package | Out-Null
-          Copy-Item build/Release/winmm.dll, dist/KetamineMenu.ini, README.md, LICENSE, THIRD-PARTY-NOTICES.txt -Destination package
+          Copy-Item build/Release/winmm.dll, dist/KetamineMenu.ini, README.md, NOTICE-zh-CN.md, CHANGELOG-zh-CN.md, LICENSE, THIRD-PARTY-NOTICES.txt -Destination package
           Compress-Archive -Path package/* -DestinationPath "$name.zip"
-          # Nexus / Vortex: game-root layout (Vortex's root installer keys on the "Hellraiser" folder). No ini: the menu
-          # creates it, so Vortex never sees a deployed file change.
-          $win64 = New-Item -ItemType Directory -Path nexus/Hellraiser/Binaries/Win64
-          Copy-Item build/Release/winmm.dll -Destination $win64
-          Get-Content LICENSE, THIRD-PARTY-NOTICES.txt | Set-Content "$win64/KetamineMenu-LICENSE.txt"
-          Compress-Archive -Path nexus/* -DestinationPath "$name-Nexus.zip"
-          "ZIP_NAME=$name.zip" >> $env:GITHUB_ENV
-          "NEXUS_ZIP=$name-Nexus.zip" >> $env:GITHUB_ENV
 
       - uses: actions/upload-artifact@v7
         with:
-          name: KetamineMenu
-          path: |
-            ${{ env.ZIP_NAME }}
-            ${{ env.NEXUS_ZIP }}
+          name: KetamineMenu-zh-CN
+          path: KetamineMenu-*.zip
 
       - name: Attach to release
-        if: startsWith(github.ref, 'refs/tags/v')
+        if: startsWith(github.ref, 'refs/tags/zh-v')
         uses: softprops/action-gh-release@v3
         with:
-          files: |
-            ${{ env.ZIP_NAME }}
-            ${{ env.NEXUS_ZIP }}
+          files: KetamineMenu-*.zip

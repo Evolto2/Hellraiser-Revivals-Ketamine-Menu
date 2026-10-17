@@ -26,7 +26,7 @@ using namespace theme;
 constexpr int kNotBinding = -1, kBindMenu = -2;
 constexpr double kToastLife = 2.2;
 constexpr float kBaseFont = 16.f;
-const char* const kTabs[] = {"Player", "Combat", "Movement", "ESP", "Inventory", "World", "Progress", "Settings"};
+const char* const kTabs[] = {"角色", "战斗", "移动", "透视", "背包", "世界", "进度", "设置"};
 constexpr int kTabCount = IM_ARRAYSIZE(kTabs);
 
 HMODULE g_module;
@@ -59,7 +59,7 @@ void PushToast(std::string text, int state)
 
 std::string KeyName(unsigned vk)
 {
-    if (!vk) return "None";
+    if (!vk) return "未设置";
     LONG scan = LONG(MapVirtualKeyW(vk, MAPVK_VK_TO_VSC)) << 16;
     switch (vk) { // navigation keys share scan codes with the numpad: mark them extended
     case VK_INSERT: case VK_DELETE: case VK_HOME: case VK_END: case VK_PRIOR: case VK_NEXT:
@@ -68,7 +68,7 @@ std::string KeyName(unsigned vk)
     }
     wchar_t buf[64];
     int n = GetKeyNameTextW(scan, buf, 64);
-    if (n <= 0) return "Key " + std::to_string(vk);
+    if (n <= 0) return "按键 " + std::to_string(vk);
     return km::Utf8(std::wstring(buf, size_t(n)));
 }
 
@@ -284,7 +284,7 @@ void ToggleRow(Toggle t, const feat::Snapshot& snap)
 
 // Label, slider (value printed inside it), Reset.
 void SliderRow(Value v, const char* label, const char* fmt, const feat::Snapshot& snap, const char* help,
-               const char* resetLabel = "Reset")
+               const char* resetLabel = "重置")
 {
     const feat::ValueInfo& info = feat::kValues[v];
     const std::string& why = snap.valueWhy[v];
@@ -299,7 +299,7 @@ void SliderRow(Value v, const char* label, const char* fmt, const feat::Snapshot
     ImGui::SetNextItemWidth(avail * 0.60f - ButtonWidth(resetLabel) - ImGui::GetStyle().ItemSpacing.x);
     float lo = v == feat::Fov ? 50.f : info.min; // FOV: 0 = game default, below any usable value
     float val = feat::g_value[v];
-    const char* shown = v == feat::Fov && val < lo ? "Game default" : fmt;
+    const char* shown = v == feat::Fov && val < lo ? "游戏默认值" : fmt;
     if (ImGui::SliderFloat("##v", &val, lo, info.max, shown, ImGuiSliderFlags_AlwaysClamp)) feat::g_value[v] = val;
     if (ImGui::IsItemDeactivatedAfterEdit()) feat::Save();
     ImGui::SameLine();
@@ -333,15 +333,15 @@ float ControlColumn(const char* label, float avail, float x0)
 
 void TabPlayer(const feat::Snapshot& s)
 {
-    Section("STATUS");
+    Section("状态");
     { // health: drag to set, applied on release
         static float editing = -1;
         ImVec2 rowMin = ImGui::GetCursorScreenPos();
         float avail = ImGui::GetContentRegionAvail().x, x0 = ImGui::GetCursorPosX();
         RowHover(rowMin, avail);
         ImGui::BeginDisabled(!s.player || s.maxHealth <= 0);
-        float w = ControlColumn("Health", avail, x0);
-        ImGui::SetNextItemWidth(w - ButtonWidth("Heal") - ImGui::GetStyle().ItemSpacing.x);
+        float w = ControlColumn("生命值", avail, x0);
+        ImGui::SetNextItemWidth(w - ButtonWidth("恢复") - ImGui::GetStyle().ItemSpacing.x);
         float hp = editing >= 0 ? editing : s.health;
         char fmt[32];
         snprintf(fmt, sizeof(fmt), s.maxHealth > 0 ? "%%.0f / %.0f" : "-", s.maxHealth);
@@ -350,35 +350,35 @@ void TabPlayer(const feat::Snapshot& s)
             feat::SetHealth(editing);
             editing = -1;
         }
-        ImGui::SetItemTooltip("Drag to set your health.");
+        ImGui::SetItemTooltip("拖动滑块可调整生命值。");
         ImGui::SameLine();
-        if (ImGui::Button("Heal")) feat::Heal();
+        if (ImGui::Button("恢复")) feat::Heal();
         ImGui::EndDisabled();
     }
-    Section("SURVIVAL");
+    Section("生存");
     for (Toggle t : {feat::GodMode, feat::InfiniteHealth, feat::NoSprintCooldown, feat::Invisible}) ToggleRow(t, s);
-    Section("DAMAGE");
+    Section("伤害");
     ToggleRow(feat::OneHitKill, s);
-    SliderRow(feat::DamageMult, "Damage multiplier", "x%.1f", s, "Multiplies the damage you deal to enemies.");
+    SliderRow(feat::DamageMult, "伤害倍率", "x%.1f", s, "按倍率提高你对敌人造成的伤害。");
 }
 
 void TabCombat(const feat::Snapshot& s)
 {
-    Section("WEAPONS");
+    Section("武器");
     for (Toggle t : {feat::InfiniteAmmo, feat::Unbreakable}) ToggleRow(t, s);
-    Section("GENESIS CONFIGURATION");
+    Section("Genesis 配置");
     {
         ImVec2 rowMin = ImGui::GetCursorScreenPos();
         float avail = ImGui::GetContentRegionAvail().x, x0 = ImGui::GetCursorPosX();
         RowHover(rowMin, avail);
         ImGui::BeginDisabled(!s.player || s.maxSuffering <= 0);
-        float w = ControlColumn("Suffering", avail, x0);
+        float w = ControlColumn("痛苦值", avail, x0);
         char text[32];
         snprintf(text, sizeof(text), s.maxSuffering > 0 ? "%.0f / %.0f" : "-", s.suffering, s.maxSuffering);
         ImGui::ProgressBar(s.maxSuffering > 0 ? s.suffering / s.maxSuffering : 0.f,
-                           {w - ButtonWidth("Fill") - ImGui::GetStyle().ItemSpacing.x, 0}, text);
+                           {w - ButtonWidth("补满") - ImGui::GetStyle().ItemSpacing.x, 0}, text);
         ImGui::SameLine();
-        if (ImGui::Button("Fill")) feat::FillSuffering();
+        if (ImGui::Button("补满")) feat::FillSuffering();
         ImGui::EndDisabled();
     }
     for (Toggle t : {feat::NoSufferingCost, feat::NoPowerCooldown}) ToggleRow(t, s);
@@ -386,56 +386,56 @@ void TabCombat(const feat::Snapshot& s)
 
 void TabMovement(const feat::Snapshot& s)
 {
-    Section("MOVEMENT");
+    Section("移动");
     for (Toggle t : {feat::Fly, feat::Noclip, feat::FreeCam}) ToggleRow(t, s);
-    SliderRow(feat::SpeedMult, "Speed", "x%.2f", s, "Movement speed multiplier (also flying and free camera speed).");
-    SliderRow(feat::JumpMult, "Jump height", "x%.1f", s, "Jump velocity multiplier.");
+    SliderRow(feat::SpeedMult, "移动速度", "x%.2f", s, "调整移动速度，也会影响飞行和自由镜头的移动速度。");
+    SliderRow(feat::JumpMult, "跳跃高度", "x%.1f", s, "调整跳跃力度倍率。");
 
-    Section("SAVED POSITIONS");
+    Section("位置存档");
     for (int i = 0; i < 3; i++) {
         ImGui::PushID(i);
         RowHover(ImGui::GetCursorScreenPos(), ImGui::GetContentRegionAvail().x);
         ImGui::AlignTextToFramePadding();
-        ImGui::Text("Slot %d", i + 1);
+        ImGui::Text("位置 %d", i + 1);
         ImGui::SameLine(0, 12 * S());
-        ImGui::TextDisabled("%s", s.slots[i].empty() ? "empty" : s.slots[i].c_str());
-        SameLineRight(ButtonWidth("Save") + ImGui::GetStyle().ItemSpacing.x + ButtonWidth("Go"));
+        ImGui::TextDisabled("%s", s.slots[i].empty() ? "空" : s.slots[i].c_str());
+        SameLineRight(ButtonWidth("保存") + ImGui::GetStyle().ItemSpacing.x + ButtonWidth("前往"));
         ImGui::BeginDisabled(!s.player);
-        if (ImGui::Button("Save")) feat::SaveSlot(i);
+        if (ImGui::Button("保存")) feat::SaveSlot(i);
         ImGui::SameLine();
         ImGui::BeginDisabled(s.slots[i] != s.map);
-        if (ImGui::Button("Go")) feat::LoadSlot(i);
+        if (ImGui::Button("前往")) feat::LoadSlot(i);
         ImGui::EndDisabled();
         ImGui::EndDisabled();
         ImGui::PopID();
     }
 
-    Section("LEVEL CHECKPOINTS");
-    if (s.checkpoints.empty()) ImGui::TextDisabled(s.player ? "No checkpoint in this level." : "Load a save first.");
+    Section("关卡检查点");
+    if (s.checkpoints.empty()) ImGui::TextDisabled(s.player ? "当前关卡没有检查点。" : "请先载入存档。");
     for (const feat::Named& cp : s.checkpoints) {
         ImGui::PushID(int(cp.fname));
         RowHover(ImGui::GetCursorScreenPos(), ImGui::GetContentRegionAvail().x);
         ImGui::AlignTextToFramePadding();
         ImGui::TextUnformatted(cp.name.c_str());
-        SameLineRight(ButtonWidth("Go"));
-        if (ImGui::Button("Go")) feat::TeleportCheckpoint(cp.fname);
+        SameLineRight(ButtonWidth("前往"));
+        if (ImGui::Button("前往")) feat::TeleportCheckpoint(cp.fname);
         ImGui::PopID();
     }
 }
 
 void TabEsp(const feat::Snapshot& s)
 {
-    Section("ESP");
+    Section("透视显示");
     ToggleRow(feat::Esp, s);
     ImGui::BeginDisabled(!feat::g_on[feat::Esp]);
-    Section("ENEMIES");
+    Section("敌人");
     for (Toggle t : {feat::EspBox, feat::EspHealth, feat::EspName, feat::EspDistance, feat::EspSkeleton, feat::EspHead,
                      feat::EspChams, feat::EspSnaplines, feat::EspOffscreen})
         ToggleRow(t, s);
-    SliderRow(feat::EspRange, "Enemy range", "%.0f m", s, "Enemies farther than this are not shown.");
-    Section("WORLD");
+    SliderRow(feat::EspRange, "敌人显示范围", "%.0f 米", s, "超出此距离的敌人不会显示。");
+    Section("世界物品");
     for (Toggle t : {feat::EspItems, feat::EspContainers, feat::EspSavePoints}) ToggleRow(t, s);
-    SliderRow(feat::EspWorldRange, "Object range", "%.0f m", s, "Objects farther than this are not shown.");
+    SliderRow(feat::EspWorldRange, "物品显示范围", "%.0f 米", s, "超出此距离的物品不会显示。");
     ImGui::EndDisabled();
 }
 
@@ -444,14 +444,14 @@ void TabInventory(const feat::Snapshot& s)
     static int amount = 1000, giveCount = 1;
     static char filter[64];
 
-    Section("MONEY");
+    Section("金钱");
     {
         ImVec2 rowMin = ImGui::GetCursorScreenPos();
         float avail = ImGui::GetContentRegionAvail().x, x0 = ImGui::GetCursorPosX();
         RowHover(rowMin, avail);
         ImGui::BeginDisabled(!s.player);
         ImGui::AlignTextToFramePadding();
-        ImGui::TextUnformatted("Money");
+        ImGui::TextUnformatted("持有金钱");
         ImGui::SameLine();
         ImGui::PushStyleColor(ImGuiCol_Text, Pink);
         ImGui::PushFont(bold, 0);
@@ -470,19 +470,19 @@ void TabInventory(const feat::Snapshot& s)
         ImGui::EndDisabled();
     }
 
-    Section("GIVE ITEMS");
-    Hint("Key items can break scripted sequences: save before giving them.");
+    Section("添加物品");
+    Hint("关键物品可能导致剧情流程异常；添加前请先保存游戏。");
     float qtyW = ImGui::GetFontSize() * 4;
-    ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x - qtyW - ImGui::CalcTextSize("Quantity").x - ImGui::GetStyle().ItemSpacing.x * 2);
-    ImGui::InputTextWithHint("##filter", "Search an item...", filter, sizeof(filter));
+    ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x - qtyW - ImGui::CalcTextSize("数量").x - ImGui::GetStyle().ItemSpacing.x * 2);
+    ImGui::InputTextWithHint("##filter", "搜索物品…", filter, sizeof(filter));
     ImGui::SameLine();
     ImGui::AlignTextToFramePadding();
-    ImGui::TextDisabled("Quantity");
+    ImGui::TextDisabled("数量");
     ImGui::SameLine();
     ImGui::SetNextItemWidth(qtyW);
     ImGui::InputInt("##qty", &giveCount, 0, 0);
     giveCount = std::clamp(giveCount, 1, 9999);
-    if (s.items.empty()) ImGui::TextDisabled(s.player ? "Loading item list..." : "Load a save first.");
+    if (s.items.empty()) ImGui::TextDisabled(s.player ? "正在读取物品列表…" : "请先载入存档。");
     auto lower = [](std::string t) {
         for (char& c : t) c = char(std::tolower(uint8_t(c)));
         return t;
@@ -497,33 +497,32 @@ void TabInventory(const feat::Snapshot& s)
             RowHover(ImGui::GetCursorScreenPos(), ImGui::GetContentRegionAvail().x);
             ImGui::AlignTextToFramePadding();
             ImGui::TextUnformatted(label.c_str());
-            SameLineRight(ButtonWidth("Give"));
-            if (ImGui::Button("Give")) feat::GiveItem(item.name, giveCount);
+            SameLineRight(ButtonWidth("添加"));
+            if (ImGui::Button("添加")) feat::GiveItem(item.name, giveCount);
             ImGui::PopID();
         }
     }
 
-    Section("COSMETICS");
+    Section("外观");
     ImGui::BeginDisabled(!s.player || !s.cheatManager);
-    if (ImGui::Button("Unlock weapon skins & charms")) feat::GiveAllSkins();
+    if (ImGui::Button("解锁武器外观与挂饰")) feat::GiveAllSkins();
     ImGui::EndDisabled();
     ImGui::SameLine();
-    ImGui::TextDisabled("Check them in the weapon customisation screen.");
+    ImGui::TextDisabled("可在武器自定义界面中查看。");
 }
 
 void TabWorld(const feat::Snapshot& s)
 {
-    Section("TIME");
-    SliderRow(feat::TimeScale, "Time scale", "x%.2f", s, "Slow motion below 1, fast forward above.");
-    Section("ENEMIES");
+    Section("时间");
+    SliderRow(feat::TimeScale, "时间倍率", "x%.2f", s, "低于 1 可减慢时间，高于 1 可加快时间。");
+    Section("敌人");
     ToggleRow(feat::FreezeAI, s);
-    SliderRow(feat::KillRadius, "Kill radius", "%.0f m", s, "Range of the button below.");
+    SliderRow(feat::KillRadius, "击杀范围", "%.0f 米", s, "下方操作会影响此范围内的敌人。");
     ImGui::BeginDisabled(!s.player);
-    if (ImGui::Button("Kill enemies nearby")) feat::KillNearby();
+    if (ImGui::Button("击杀附近敌人")) feat::KillNearby();
     ImGui::EndDisabled();
-    Section("CAMERA & HUD");
-    SliderRow(feat::Fov, "Field of view", "%.0f°", s, "Locks the camera field of view. Default gives control back to the game.",
-              "Default");
+    Section("镜头与界面");
+    SliderRow(feat::Fov, "视野角度", "%.0f°", s, "固定镜头视野角度；选择默认值可交还游戏控制。", "默认");
     ToggleRow(feat::HideHUD, s);
 }
 
@@ -531,7 +530,7 @@ void TabProgress(const feat::Snapshot& s)
 {
     { // warning card
         float sc = S(), w = ImGui::GetContentRegionAvail().x;
-        const char* warn = "Save your game before changing objectives: skipping steps can break scripted sequences.";
+        const char* warn = "修改目标前请先保存游戏：跳过步骤可能导致剧情流程异常。";
         ImVec2 p = ImGui::GetCursorScreenPos();
         ImVec2 size = ImGui::CalcTextSize(warn, nullptr, false, w - 30 * sc);
         ImVec2 b{p.x + w, p.y + size.y + 20 * sc};
@@ -546,8 +545,8 @@ void TabProgress(const feat::Snapshot& s)
         ImGui::Dummy({0, 0});
     }
 
-    Section("CURRENT OBJECTIVES");
-    if (s.objectivesActive.empty()) ImGui::TextDisabled(s.player ? "No active objective found." : "Load a save first.");
+    Section("当前目标");
+    if (s.objectivesActive.empty()) ImGui::TextDisabled(s.player ? "没有找到进行中的目标。" : "请先载入存档。");
     for (const feat::Named& o : s.objectivesActive) {
         ImGui::PushID(o.name.c_str());
         RowHover(ImGui::GetCursorScreenPos(), ImGui::GetContentRegionAvail().x);
@@ -556,33 +555,33 @@ void TabProgress(const feat::Snapshot& s)
         if (tracked) ImGui::PushStyleColor(ImGuiCol_Text, Pink);
         ImGui::TextUnformatted(Pretty(o.name).c_str());
         if (tracked) ImGui::PopStyleColor();
-        ImGui::SetItemTooltip("%s%s", o.name.c_str(), tracked ? "  (tracked)" : "");
-        SameLineRight(ButtonWidth("Complete"));
-        if (ImGui::Button("Complete")) feat::CompleteObjective(o.fname);
+        ImGui::SetItemTooltip("%s%s", o.name.c_str(), tracked ? "  （正在追踪）" : "");
+        SameLineRight(ButtonWidth("完成"));
+        if (ImGui::Button("完成")) feat::CompleteObjective(o.fname);
         ImGui::PopID();
     }
-    if (!s.objectivesDone.empty() && ImGui::CollapsingHeader("Completed objectives")) {
+    if (!s.objectivesDone.empty() && ImGui::CollapsingHeader("已完成目标")) {
         for (const feat::Named& o : s.objectivesDone) {
             ImGui::TextDisabled("%s", Pretty(o.name).c_str());
             ImGui::SetItemTooltip("%s", o.name.c_str());
         }
     }
 
-    Section("SHOP");
+    Section("商店");
     static int level = 0;
     ImGui::BeginDisabled(s.shopLevel < 0);
     ImGui::AlignTextToFramePadding();
-    ImGui::TextUnformatted("Shop level");
+    ImGui::TextUnformatted("商店等级");
     ImGui::SameLine();
     ImGui::PushStyleColor(ImGuiCol_Text, Pink);
     ImGui::Text("%s", s.shopLevel >= 0 ? std::to_string(s.shopLevel).c_str() : "-");
     ImGui::PopStyleColor();
-    SameLineRight(ImGui::GetFontSize() * 7 + ImGui::GetStyle().ItemSpacing.x + ButtonWidth("Set"));
+    SameLineRight(ImGui::GetFontSize() * 7 + ImGui::GetStyle().ItemSpacing.x + ButtonWidth("设置"));
     ImGui::SetNextItemWidth(ImGui::GetFontSize() * 7);
     ImGui::InputInt("##level", &level);
     level = std::clamp(level, 0, 99);
     ImGui::SameLine();
-    if (ImGui::Button("Set")) feat::SetShopLevel(level);
+    if (ImGui::Button("设置")) feat::SetShopLevel(level);
     ImGui::EndDisabled();
 }
 
@@ -590,7 +589,7 @@ void BindButton(const char* id, int target, unsigned key)
 {
     ImGui::PushID(id);
     bool waiting = g_binding == target;
-    std::string label = waiting ? "Press a key..." : KeyName(key);
+    std::string label = waiting ? "请按下按键…" : KeyName(key);
     if (waiting) ImGui::PushStyleColor(ImGuiCol_Button, Alpha(Violet, 0.4f));
     if (ImGui::Button(label.c_str(), {ImGui::GetFontSize() * 8, 0})) g_binding = waiting ? kNotBinding : target;
     if (waiting) ImGui::PopStyleColor();
@@ -599,15 +598,15 @@ void BindButton(const char* id, int target, unsigned key)
 
 void TabSettings(const feat::Snapshot&)
 {
-    Section("MENU");
+    Section("菜单");
     float avail = ImGui::GetContentRegionAvail().x, x0 = ImGui::GetCursorPosX();
-    ControlColumn("Menu key", avail, x0);
+    ControlColumn("菜单按键", avail, x0);
     BindButton("menukey", kBindMenu, g_menuKey);
     ImGui::SameLine();
-    ImGui::TextDisabled("Esc cancels");
+    ImGui::TextDisabled("Esc 取消");
 
     // Buttons rather than a slider: dragging a slider that rescales the window under the mouse runs away.
-    ControlColumn("UI scale", avail, x0);
+    ControlColumn("界面缩放", avail, x0);
     float current = g_scale > 0 ? g_scale : g_appliedScale;
     auto setScale = [](float v) {
         g_scale = v > 0 ? std::clamp(std::round(v * 10) / 10, 0.7f, 2.5f) : 0;
@@ -621,14 +620,14 @@ void TabSettings(const feat::Snapshot&)
     if (ImGui::Button(" + ")) setScale(current + 0.1f);
     ImGui::SameLine();
     ImGui::BeginDisabled(g_scale <= 0);
-    if (ImGui::Button("Auto")) setScale(0);
+    if (ImGui::Button("自动")) setScale(0);
     ImGui::EndDisabled();
 
-    Section("HOTKEYS");
-    Hint("They work with the menu closed. Click a key, then press the new one. Backspace clears, Esc cancels.");
+    Section("快捷键");
+    Hint("菜单关闭时快捷键也有效。点击按键项后按下新按键；Backspace 清除，Esc 取消。");
     if (ImGui::BeginTable("hotkeys", 2, ImGuiTableFlags_NoPadOuterX)) {
-        ImGui::TableSetupColumn("Feature", ImGuiTableColumnFlags_WidthStretch);
-        ImGui::TableSetupColumn("Key", ImGuiTableColumnFlags_WidthFixed);
+        ImGui::TableSetupColumn("功能", ImGuiTableColumnFlags_WidthStretch);
+        ImGui::TableSetupColumn("按键", ImGuiTableColumnFlags_WidthFixed);
         for (int t = 0; t < feat::ToggleCount; t++) {
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
@@ -640,13 +639,13 @@ void TabSettings(const feat::Snapshot&)
         ImGui::EndTable();
     }
 
-    Section("CONFIGURATION");
-    if (ImGui::Button("Reset configuration")) ImGui::OpenPopup("Reset?");
+    Section("配置");
+    if (ImGui::Button("重置配置")) ImGui::OpenPopup("确认重置");
     ImGui::SameLine();
-    ImGui::TextDisabled("KetamineMenu.ini and KetamineMenu.log sit next to the DLL.");
-    if (ImGui::BeginPopupModal("Reset?", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
-        ImGui::TextUnformatted("Turn every option off and forget hotkeys, positions and settings?");
-        if (ImGui::Button("Reset")) {
+    ImGui::TextDisabled("KetamineMenu.ini 和 KetamineMenu.log 与修改器 DLL 位于同一目录。");
+    if (ImGui::BeginPopupModal("确认重置", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+        ImGui::TextUnformatted("关闭所有功能并清除快捷键、位置和设置？");
+        if (ImGui::Button("重置")) {
             cfg::Reset();
             for (int t = 0; t < feat::ToggleCount; t++) feat::g_on[t] = feat::kToggles[t].def;
             for (int v = 0; v < feat::ValueCount; v++) feat::g_value[v] = feat::kValues[v].def;
@@ -656,7 +655,7 @@ void TabSettings(const feat::Snapshot&)
             ImGui::CloseCurrentPopup();
         }
         ImGui::SameLine();
-        if (ImGui::Button("Cancel")) ImGui::CloseCurrentPopup();
+        if (ImGui::Button("取消")) ImGui::CloseCurrentPopup();
         ImGui::EndPopup();
     }
 }
@@ -673,7 +672,7 @@ void DrawToasts()
     for (const Toast& t : g_toasts) {
         double age = now - t.start;
         float alpha = float(std::clamp(std::min(age / 0.15, (kToastLife - age) / 0.35), 0.0, 1.0));
-        const char* state = t.state < 0 ? "" : t.state ? "ON" : "OFF";
+        const char* state = t.state < 0 ? "" : t.state ? "开启" : "关闭";
         ImVec2 ts = regular->CalcTextSizeA(size, FLT_MAX, 0, t.text.c_str()), ss = bold->CalcTextSizeA(size, FLT_MAX, 0, state);
         float w = pad * 2 + 4 * s + ts.x + (t.state < 0 ? 0 : ss.x + 12 * s), h = ts.y + pad * 1.4f;
         ImVec2 a{right - w, y}, b{right, y + h};
@@ -694,12 +693,12 @@ void Header(const feat::Snapshot& snap)
     ImVec2 p = ImGui::GetCursorScreenPos();
     float avail = ImGui::GetContentRegionAvail().x;
     ImGui::PushFont(bold, kBaseFont * 1.45f);
-    ImGui::TextUnformatted("Hellraiser Revival's Ketamine Menu");
+    ImGui::TextUnformatted("Hellraiser Revival 修改菜单");
     ImGui::PopFont();
     ImGui::TextDisabled("v%s  ·  %s", KM_VERSION, overlay::ApiName());
 
     // Status pill on the right of the title.
-    const char* status = !snap.reflection ? "Engine not hooked" : snap.player ? "Player found" : "Load a save";
+    const char* status = !snap.reflection ? "游戏引擎未连接" : snap.player ? "已载入角色" : "请载入存档";
     float size = kBaseFont * 0.85f * s;
     ImVec2 ts = regular->CalcTextSizeA(size, FLT_MAX, 0, status);
     float h = ts.y + 12 * s, w = ts.x + 30 * s;
@@ -753,9 +752,9 @@ void Footer()
     snprintf(display, sizeof(display), "%.0f × %.0f", io.DisplaySize.x, io.DisplaySize.y);
     snprintf(fps, sizeof(fps), "%.0f", io.Framerate);
     const std::pair<const char*, std::string> items[] = {
-        {"GAME", g_game}, {"CPU", g_cpu}, {"GPU", gpu}, {"RAM", g_ram}, {"DISPLAY", display}, {"FPS", fps}};
+        {"游戏", g_game}, {"CPU", g_cpu}, {"GPU", gpu}, {"内存", g_ram}, {"分辨率", display}, {"FPS", fps}};
 
-    std::string hint = KeyName(g_menuKey) + " to close";
+    std::string hint = KeyName(g_menuKey) + " 关闭菜单";
     ImVec2 hs = regular->CalcTextSizeA(size, FLT_MAX, 0, hint.c_str());
     float x = p.x, right = p.x + avail - hs.x - 20 * s, labelY = p.y + (size - labelSize) * 0.72f; // baseline-ish alignment with the values
     dl->PushClipRect(p, {right, p.y + size * 2}, true);
@@ -778,7 +777,7 @@ void DrawWindow()
     ImGuiIO& io = ImGui::GetIO();
     ImGui::SetNextWindowSize({880 * s, 620 * s}, ImGuiCond_Always);
     ImGui::SetNextWindowPos({io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f}, ImGuiCond_FirstUseEver, {0.5f, 0.5f});
-    ImGui::Begin("Ketamine Menu", nullptr,
+    ImGui::Begin("Hellraiser Revival 修改菜单", nullptr,
                  ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse |
                      ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoSavedSettings);
     Header(snap);
@@ -825,12 +824,24 @@ void Init(void* dllModule, const std::string& gameVersion)
 void SetupImGui()
 {
     regular = LoadFont(101); // first font added = default font
-    bold = LoadFont(102);
     if (!regular) {
         km::Log("Embedded font missing, using ImGui's default");
         regular = ImGui::GetIO().Fonts->AddFontDefault();
     }
-    if (!bold) bold = regular;
+    auto addChineseGlyphs = [] {
+        ImFontConfig cfg;
+        cfg.MergeMode = true;
+        cfg.PixelSnapH = true;
+        return ImGui::GetIO().Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\msyh.ttc", kBaseFont, &cfg,
+                                                        ImGui::GetIO().Fonts->GetGlyphRangesChineseSimplifiedCommon());
+    };
+    if (!addChineseGlyphs()) km::Log("Chinese font unavailable: C:\\Windows\\Fonts\\msyh.ttc");
+    bold = LoadFont(102);
+    if (!bold) {
+        bold = regular;
+    } else if (!addChineseGlyphs()) {
+        km::Log("Chinese font merge failed for bold font");
+    }
 }
 
 void Draw()
@@ -895,3 +906,4 @@ bool OnKeyDown(unsigned vk)
 }
 
 } // namespace menu
+

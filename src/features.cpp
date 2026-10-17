@@ -18,33 +18,33 @@ using namespace ue;
 namespace feat {
 
 const ToggleInfo kToggles[ToggleCount] = {
-    {"GodMode", "God mode", "Health stays full and damage is ignored."},
-    {"InfiniteHealth", "Infinite health", "Health refills instantly. You still take the hits."},
-    {"NoSprintCooldown", "No sprint cooldown", "The game has no stamina: this removes the pause between sprints."},
-    {"OneHitKill", "One-hit kill", "Any damage you deal kills the enemy. Bosses with scripted phases may resist."},
-    {"Invisible", "Invisible to enemies", "Uses the developers' invisibility cheat."},
-    {"InfiniteAmmo", "Infinite ammo", "Your magazine never empties, so you never reload."},
-    {"NoSufferingCost", "Powers cost nothing", "Genesis Configuration powers use no Suffering, and it stays full."},
-    {"NoPowerCooldown", "No power cooldown", "Removes telekinesis and pyrokinesis cooldowns."},
-    {"Unbreakable", "Unbreakable melee weapons", "Melee weapons never lose durability."},
-    {"Fly", "Fly", "Flies where you look, with your usual movement keys or stick."},
-    {"Noclip", "Noclip", "Fly through walls, where you look, with your usual movement keys."},
-    {"FreezeAI", "Freeze enemies", "Enemies stop moving and attacking."},
-    {"HideHUD", "Hide HUD", "Hides the game interface (menus you open later stay visible)."},
-    {"FreeCam", "Free camera", "Detached camera: movement keys to move, mouse to look. Your character stays in place."},
-    {"Esp", "ESP", "Shows enemies and objects through walls."},
-    {"EspBox", "Box", "Corner box around each enemy.", true},
-    {"EspHealth", "Health bar", "Enemy health next to the box.", true},
-    {"EspName", "Name", "Enemy type.", true},
-    {"EspDistance", "Distance", "Distance in metres.", true},
-    {"EspSkeleton", "Skeleton", "Bones drawn over the body."},
-    {"EspHead", "Head marker", "Glowing dot on the head."},
-    {"EspChams", "Chams", "Glowing body silhouette, visible through walls."},
-    {"EspSnaplines", "Snaplines", "Lines from the bottom of the screen to each enemy."},
-    {"EspOffscreen", "Off-screen arrows", "Arrows at the edge of the screen pointing at enemies you can't see.", true},
-    {"EspItems", "Items on the ground", "Ammo, money, healing, weapons and materials you can pick up.", true},
-    {"EspContainers", "Loot containers", "Chests, shelves and breakable crates."},
-    {"EspSavePoints", "Save points", "Where you can save."},
+    {"GodMode", "无敌模式", "保持满血并免疫伤害。"},
+    {"InfiniteHealth", "无限生命值", "受击后立即恢复生命值（仍会受到攻击）。"},
+    {"NoSprintCooldown", "冲刺无冷却", "移除连续冲刺之间的等待间隔。"},
+    {"OneHitKill", "一击必杀", "造成的伤害可击杀敌人；处于剧情阶段的首领可能不受影响。"},
+    {"Invisible", "敌人无法发现", "使用游戏内置的隐身功能。"},
+    {"InfiniteAmmo", "无限弹药", "弹匣不会耗尽，因此无需换弹。"},
+    {"NoSufferingCost", "能力不消耗痛苦值", "Genesis 能力不消耗痛苦值，并保持痛苦值全满。"},
+    {"NoPowerCooldown", "能力无冷却", "移除念动力和念火术的冷却时间。"},
+    {"Unbreakable", "近战武器不损坏", "近战武器不会损失耐久度。"},
+    {"Fly", "飞行", "朝视线方向飞行，可用常规移动按键或摇杆控制。"},
+    {"Noclip", "穿墙飞行", "朝视线方向穿过墙壁，可用常规移动按键控制。"},
+    {"FreezeAI", "冻结敌人", "敌人将停止移动和攻击。"},
+    {"HideHUD", "隐藏游戏界面", "隐藏游戏 HUD；之后打开的菜单仍会显示。"},
+    {"FreeCam", "自由镜头", "镜头脱离角色；用移动按键移动、鼠标转向，角色留在原地。"},
+    {"Esp", "透视显示", "隔着墙显示敌人和物品。"},
+    {"EspBox", "目标方框", "在每名敌人周围显示角框。", true},
+    {"EspHealth", "生命条", "在方框旁显示敌人生命值。", true},
+    {"EspName", "名称", "显示敌人类型。", true},
+    {"EspDistance", "距离", "显示距离（米）。", true},
+    {"EspSkeleton", "骨骼", "在敌人身上绘制骨骼线。"},
+    {"EspHead", "头部标记", "在头部显示发光标记。"},
+    {"EspChams", "透视轮廓", "隔墙显示发光的人体轮廓。"},
+    {"EspSnaplines", "目标指向线", "从屏幕底部向每名敌人绘制连线。"},
+    {"EspOffscreen", "屏幕外方向箭头", "在屏幕边缘用箭头指示视野外敌人的方向。", true},
+    {"EspItems", "地面物品", "显示可拾取的弹药、金钱、治疗物品、武器和材料。", true},
+    {"EspContainers", "战利品容器", "显示箱子、架子和可破坏的木箱。"},
+    {"EspSavePoints", "存档点", "显示可保存游戏的位置。"},
 };
 
 const ValueInfo kValues[ValueCount] = {
@@ -554,10 +554,10 @@ void RefreshWorld(uint64_t now)
             if (stack && *stack > 1) t.label += "  x" + std::to_string(*stack);
         } else if ((shelf && IsA(o, shelf)) || (chest && IsA(o, chest)) || (crate && IsA(o, crate))) {
             t.kind = EspKind::Container;
-            t.label = IsA(o, chest) ? "Chest" : IsA(o, shelf) ? "Shelf" : "Crate";
+            t.label = IsA(o, chest) ? "宝箱" : IsA(o, shelf) ? "架子" : "木箱";
         } else if (save && IsA(o, save)) {
             t.kind = EspKind::SavePoint;
-            t.label = "Save point";
+            t.label = "存档点";
         } else {
             return true;
         }
@@ -655,16 +655,16 @@ void TickPlayer(UObject* player, uint64_t now, Snapshot& snap)
     snap.maxSuffering = maxSuffering.Get();
 
     // Player
-    if (!health || !maxHealth) why[GodMode] = why[InfiniteHealth] = "Health attribute not found.";
+    if (!health || !maxHealth) why[GodMode] = why[InfiniteHealth] = "未找到生命值属性。";
     if (Track(GodMode, [&] { SetBool(player, "bCanBeDamaged", true); })) SetBool(player, "bCanBeDamaged", false);
     if ((g_on[GodMode] || g_on[InfiniteHealth]) && health.Get() < maxHealth.Get()) health.Set(maxHealth.Get());
 
-    if (!Member<float>(settings, "SprintCooldownAfterSprint")) why[NoSprintCooldown] = "Sprint settings not found.";
+    if (!Member<float>(settings, "SprintCooldownAfterSprint")) why[NoSprintCooldown] = "未找到冲刺设置。";
     bool sprint = g_on[NoSprintCooldown];
     Override(settings, "SprintCooldownAfterSprint", sprint, kInstant);
     Override(settings, "SprintCooldownAfterShooting", sprint, kInstant);
 
-    if (!CheatAvailable()) why[Invisible] = "The developers' cheat manager isn't available.";
+    if (!CheatAvailable()) why[Invisible] = "游戏内置的作弊管理器不可用。";
     // These cheats flip a state on each call: mirror it (reset when the cheat manager is recreated).
     auto cheatToggle = [&](Toggle t, const char* fn) {
         if (g_on[t] != s.cheatState[t] && (g_on[t] || s.cheat.Get()) && CheatAvailable() && CheatCall(fn))
@@ -674,7 +674,7 @@ void TickPlayer(UObject* player, uint64_t now, Snapshot& snap)
     cheatToggle(InfiniteAmmo, "K2_ToggleUnlimitedAmmo");
     UObject* cheat = s.cheat.Get();
 
-    if (!FindClass("EnemyCharacter")) why[OneHitKill] = snap.valueWhy[DamageMult] = "Enemy class not found.";
+    if (!FindClass("EnemyCharacter")) why[OneHitKill] = snap.valueWhy[DamageMult] = "未找到敌人类型。";
     TickEnemyDamage(player, now);
 
     // Combat
@@ -688,7 +688,7 @@ void TickPlayer(UObject* player, uint64_t now, Snapshot& snap)
             *ammo = top;
         }
     }
-    if (!FindProp(ClassOf(player), "bIgnoreSufferingCost")) why[NoSufferingCost] = "Suffering settings not found.";
+    if (!FindProp(ClassOf(player), "bIgnoreSufferingCost")) why[NoSufferingCost] = "未找到痛苦值设置。";
     if (Track(NoSufferingCost, [&] {
             SetBool(player, "bIgnoreSufferingCost", false);
             SetBool(player, "bInfiniteSuffering", false);
@@ -698,7 +698,7 @@ void TickPlayer(UObject* player, uint64_t now, Snapshot& snap)
         if (suffering.Get() < maxSuffering.Get()) suffering.Set(maxSuffering.Get());
     }
     bool cooldown = g_on[NoPowerCooldown];
-    if (!Member<float>(settings, "TelekinesisReleaseSuccessCooldown")) why[NoPowerCooldown] = "Power settings not found.";
+    if (!Member<float>(settings, "TelekinesisReleaseSuccessCooldown")) why[NoPowerCooldown] = "未找到能力设置。";
     for (const char* p : {"TelekinesisReleaseSuccessCooldown", "TelekinesisReleaseFailCooldown",
                           "PyrokinesisFlamePillarReignitionCooldown", "PyrokinesisLabyrinthFireReignitionCooldown"})
         Override(settings, p, cooldown, kInstant);
@@ -711,8 +711,8 @@ void TickPlayer(UObject* player, uint64_t now, Snapshot& snap)
     }
 
     // Movement
-    if (!cmc) why[Fly] = why[Noclip] = why[FreeCam] = "Movement component not found.";
-    if (!FindClass("CameraActor")) why[FreeCam] = "Camera class not found.";
+    if (!cmc) why[Fly] = why[Noclip] = why[FreeCam] = "未找到角色移动组件。";
+    if (!FindClass("CameraActor")) why[FreeCam] = "未找到镜头类型。";
     bool camWasOn = s.applied[FreeCam];
     if (Track(FreeCam, [&] { StopFreeCam(pc, player); })) {
         if (!camWasOn) StartFreeCam(pc, player, now);
@@ -737,7 +737,7 @@ void TickPlayer(UObject* player, uint64_t now, Snapshot& snap)
 
     Attr speedAttr = GetAttr(attrs, "SpeedMultiplier");
     float speed = g_value[SpeedMult];
-    if (!speedAttr) snap.valueWhy[SpeedMult] = "Speed attribute not found.";
+    if (!speedAttr) snap.valueWhy[SpeedMult] = "未找到移动速度属性。";
     else {
         if (s.speedBase < 0) s.speedBase = *speedAttr.base;
         if (speed != 1 || s.lastValue[SpeedMult] != 1) speedAttr.SetCurrent(s.speedBase * speed);
@@ -747,7 +747,7 @@ void TickPlayer(UObject* player, uint64_t now, Snapshot& snap)
         if (s.jumpZ <= 0) s.jumpZ = *z;
         if (jump != 1 || s.lastValue[JumpMult] != 1) *z = s.jumpZ * jump;
     } else {
-        snap.valueWhy[JumpMult] = "Jump settings not found.";
+        snap.valueWhy[JumpMult] = "未找到跳跃设置。";
     }
 
     // World
@@ -784,15 +784,15 @@ void SlowRefresh(UObject* player, Snapshot& snap)
 
     // Items, grouped by the class of their data asset.
     static const std::map<std::string, std::string> kCategory = {
-        {"CurrencyItem", "Currency"},       {"AmmoItem", "Ammo"},
-        {"WeaponRangedItem", "Firearms"},   {"WeaponMeleeItem", "Melee weapons"},
-        {"ItemWeaponUpgrade", "Weapon upgrades"}, {"ItemEquipableToolMultiUserUsable", "Healing"},
-        {"ItemEquippableTool", "Tools"},    {"ItemEquippable", "Equipment"},
+        {"CurrencyItem", "货币"}, {"AmmoItem", "弹药"},
+        {"WeaponRangedItem", "枪械"}, {"WeaponMeleeItem", "近战武器"},
+        {"ItemWeaponUpgrade", "武器升级"}, {"ItemEquipableToolMultiUserUsable", "治疗物品"},
+        {"ItemEquippableTool", "工具"}, {"ItemEquippable", "装备"},
     };
     std::map<std::string, std::vector<Named>> byCat;
     ForEachInstance(FindClass("Item"), [&](UObject* o) {
         auto it = kCategory.find(Name(reinterpret_cast<UObject*>(ClassOf(o))));
-        byCat[it == kCategory.end() ? "Misc" : it->second].push_back({Name(o), 0});
+        byCat[it == kCategory.end() ? "其他" : it->second].push_back({Name(o), 0});
         return true;
     });
     snap.items.clear();
@@ -891,13 +891,13 @@ void Tick()
             SlowRefresh(player, snap);
         }
     } else {
-        snap.why.fill("Load a save first.");
-        snap.valueWhy.fill("Load a save first.");
+        snap.why.fill("请先载入存档。");
+        snap.valueWhy.fill("请先载入存档。");
         snap.money = snap.shopLevel = -1;
         std::lock_guard lock(g_espMutex);
         g_esp = {};
     }
-    if (!snap.reflection) snap.why.fill("Game engine not hooked: see KetamineMenu.log.");
+    if (!snap.reflection) snap.why.fill("游戏引擎尚未连接，请查看 KetamineMenu.log。");
     snap.cheatManager = CheatAvailable();
     for (int i = 0; i < 3; i++) snap.slots[i] = s.slotMap[i];
 
@@ -937,8 +937,8 @@ Snapshot GetSnapshot()
     // The tick never runs without the engine hooks: grey everything out here.
     if (!Ready()) {
         snap.reflection = false;
-        snap.why.fill("Game engine not hooked: see KetamineMenu.log.");
-        snap.valueWhy.fill("Game engine not hooked: see KetamineMenu.log.");
+        snap.why.fill("游戏引擎尚未连接，请查看 KetamineMenu.log。");
+        snap.valueWhy.fill("游戏引擎尚未连接，请查看 KetamineMenu.log。");
     }
     return snap;
 }
@@ -1026,7 +1026,7 @@ void GiveItem(const std::string& name, int count)
         int after2 = ItemCount(item);
         km::Log("Give %s x%d: %s via item manager (%d -> %d)", name.c_str(), count, after2 > before ? "OK" : "FAILED",
                 before, after2);
-        menu::Toast(after2 > before ? "+" + std::to_string(after2 - before) + "  " + Pretty(name) : "Couldn't give " + Pretty(name));
+        menu::Toast(after2 > before ? "+" + std::to_string(after2 - before) + "  " + Pretty(name) : "无法添加：" + Pretty(name));
     });
 }
 
@@ -1054,7 +1054,7 @@ void AddMoney(int delta)
 void GiveAllSkins()
 {
     OnGame([](UObject*) {
-        menu::Toast(CheatCall("K2_AddAllSkinsAndCharms") ? "Skins & charms unlocked" : "Skins & charms: cheat unavailable");
+        menu::Toast(CheatCall("K2_AddAllSkinsAndCharms") ? "已解锁武器外观和挂饰" : "解锁失败：游戏作弊功能不可用");
     });
 }
 
@@ -1079,7 +1079,7 @@ void KillNearby()
             if (c && c.Arg(0, false).Arg(1, player).Arg(2, false).Run()) killed++;
         });
         km::Log("Kill nearby: %d enemies within %.0f m", killed, radius / 100);
-        menu::Toast(std::to_string(killed) + (killed == 1 ? " enemy killed" : " enemies killed"));
+        menu::Toast("已击杀附近敌人：" + std::to_string(killed));
     });
 }
 
@@ -1120,3 +1120,4 @@ void CompleteObjective(uint64_t fname)
 }
 
 } // namespace feat
+

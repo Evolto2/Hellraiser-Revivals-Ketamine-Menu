@@ -59,3 +59,4 @@ add_test(NAME proxy_test COMMAND proxy_test $<TARGET_FILE:KetamineMenu>)
 # Minimal DX11/DX12 app that loads the DLL, toggles the menu and saves a screenshot (manual check of the overlay).
 add_executable(overlay_host tests/overlay_host.cpp)
 target_link_libraries(overlay_host PRIVATE d3d11 d3d12 dxgi)
+

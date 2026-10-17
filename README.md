@@ -1,239 +1,88 @@
-<p align="center">
-  <img src="docs/banner.png" alt="Hellraiser Revival's Ketamine Menu over the game's Lament Configuration" width="100%">
-</p>
+# Hellraiser Revival's Ketamine Menu 简体中文本地化版
 
-<h1 align="center">Hellraiser Revival's Ketamine Menu</h1>
+> 本仓库是非官方简体中文本地化版本，基于上游项目 Hellraiser Revival's Ketamine Menu v0.4.8 修改。ですの喵
+> 上游作者账号：[@literalynn](https://github.com/literalynn)，原项目：[literalynn/Hellraiser-Revivals-Ketamine-Menu](https://github.com/literalynn/Hellraiser-Revivals-Ketamine-Menu)。ですの喵
+> 本地化维护者：[@Evolto2](https://github.com/Evolto2)。ですの喵
+> 适用于 Clive Barker's Hellraiser: Revival Windows PC 版的游戏内菜单。ですの喵
+> 本项目与原作者、游戏开发商及发行商没有隶属或背书关系。ですの喵
 
-<p align="center">
-  A clean, in-game trainer for <b>Clive Barker's Hellraiser: Revival</b> (PC).<br>
-  Drop one file in the game folder, press <kbd>Insert</kbd>, done.
-</p>
+本地化仅翻译菜单中的固定文字；游戏动态读取的敌人、物品、检查点和任务名称仍可能显示英文。ですの喵
 
-<p align="center">
-  <a href="https://github.com/literalynn/Hellraiser-Revivals-Ketamine-Menu/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/literalynn/Hellraiser-Revivals-Ketamine-Menu?color=AC6EE2&label=download"></a>
-  <a href="https://www.nexusmods.com/clivebarkershellraiserrevival/mods/27"><img alt="Nexus Mods" src="https://img.shields.io/badge/Nexus%20Mods-Ketamine%20Menu-F89FCD"></a>
-  <a href="https://github.com/literalynn/Hellraiser-Revivals-Ketamine-Menu/actions/workflows/build.yml"><img alt="Build" src="https://github.com/literalynn/Hellraiser-Revivals-Ketamine-Menu/actions/workflows/build.yml/badge.svg"></a>
-  <img alt="Game version" src="https://img.shields.io/badge/game-1.1.1.227384-F89FCD">
-  <img alt="Platform" src="https://img.shields.io/badge/platform-Windows%2010%20%2F%2011%20x64-1B1B23">
-  <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-AC6EE2"></a>
-</p>
+## 原作者与许可
 
-<p align="center">
-  <a href="#install">Install</a> ·
-  <a href="#features">Features</a> ·
-  <a href="#using-the-menu">Usage</a> ·
-  <a href="#faq--troubleshooting">FAQ</a> ·
-  <a href="#uninstall">Uninstall</a> ·
-  <a href="#build-from-source">Build</a>
-</p>
+- 上游 v0.4.8 源码及原有 LICENSE、THIRD-PARTY-NOTICES.txt 均保留，分发时请一并保留这些文件。ですの喵
+- 上游代码按 MIT License 发布；第三方组件的许可和声明以随仓库提供的文件为准。ですの喵
+- 本地化修改说明见 [NOTICE-zh-CN.md](NOTICE-zh-CN.md)，版本记录见 [CHANGELOG-zh-CN.md](CHANGELOG-zh-CN.md)。ですの喵
 
----
+## 功能
 
-> [!TIP]
-> **Back up your saves** before you start: `%LOCALAPPDATA%\Hellraiser\Saved\SaveGames`.
+功能来自上游修改器，此中文版本主要改变菜单显示文字和中文字体加载方式。ですの喵
 
-## Install
+- 角色：无敌、无限生命、隐身、免冲刺冷却、伤害倍率及生命值调整。ですの喵
+- 战斗：无限弹药、近战武器耐久、Genesis 能力消耗与冷却选项。ですの喵
+- 移动：飞行、穿墙飞行、自由镜头、移动速度和跳跃高度调整、位置保存及检查点传送。ですの喵
+- 透视：显示敌人方框、生命值、名称、距离、骨骼和屏幕外方向；也可显示地面物品、容器与存档点。ですの喵
+- 背包：调整金钱、添加游戏物品、解锁武器外观与挂饰。ですの喵
+- 世界：调整游戏速度、冻结敌人、击杀附近敌人、调整视野角度及隐藏 HUD。ですの喵
+- 进度：查看或完成目标、调整商店等级；跳过剧情步骤可能影响流程。ですの喵
 
-You only need one file, and nothing to install on your PC (no Visual C++ redistributable, no launcher).
+## 版本与兼容范围
 
-1. **Download** the latest `KetamineMenu-vX.Y.Z.zip` from the [Releases page](https://github.com/literalynn/Hellraiser-Revivals-Ketamine-Menu/releases/latest) and unzip it.
-2. **Open the game folder**: in Steam, right-click *Clive Barker's Hellraiser: Revival* → **Manage** → **Browse local files**.
-   Then open `Hellraiser` → `Binaries` → `Win64` (the folder that contains `Hellraiser-Win64-Shipping.exe`).
-3. **Copy `winmm.dll` into that `Win64` folder.** Optionally copy `KetamineMenu.ini` too (default settings).
-4. **Start the game**, load a save, and press <kbd>Insert</kbd>.
+- 本地化源码基于上游 v0.4.8，本地化版本标识为 zh-v0.4.8.1。ですの喵
+- 上游说明列出的游戏版本包括 1.1.1.227384 和 1.0.1.227219；本地化维护者未重新进行游戏内验证。ですの喵
+- 上游菜单支持 DirectX 11 和 DirectX 12；显卡驱动、其他注入型模组及游戏更新都可能影响兼容性。ですの喵
+- 本次完成了 Windows x64 编译和独立菜单界面预览，但没有完成游戏内实际加载验证。ですの喵
+- 中文字形从系统路径 C:\Windows\Fonts\msyh.ttc 加载；仓库和发布包不包含或再分发微软雅黑字体。ですの喵
+- 若字体文件不存在，中文可能显示为空框或缺字；请在 Windows 中安装相应的简体中文字体功能后再试。ですの喵
 
-```
-Clive Barker's Hellraiser - Revival\
-└─ Hellraiser\
-   └─ Binaries\
-      └─ Win64\
-         ├─ Hellraiser-Win64-Shipping.exe
-         ├─ winmm.dll            ← Ketamine Menu
-         └─ KetamineMenu.ini     ← optional, created automatically otherwise
-```
+## 下载与安装
 
-**Vortex:** get it from the [Nexus Mods page](https://www.nexusmods.com/clivebarkershellraiserrevival/mods/27) with *Mod Manager Download*.
+1. 本仓库首次构建完成后，打开 [Actions 工作流](https://github.com/Evolto2/Hellraiser-Revivals-Ketamine-Menu/actions/workflows/build.yml)，进入最新成功运行记录并下载 `KetamineMenu-zh-CN` 构建产物。ですの喵
+2. 在 Steam 中打开游戏的本地文件目录，再进入 Hellraiser\Binaries\Win64；该目录应与 Hellraiser-Win64-Shipping.exe 位于同一层。ですの喵
+3. 如果目录里已经有 winmm.dll，请先备份或改名；它可能属于其他模组。ですの喵
+4. 将压缩包中的 winmm.dll 复制到 Win64 目录；KetamineMenu.ini 是可选默认配置文件。ですの喵
+5. 启动游戏并载入存档，按 Insert 打开或关闭菜单。ですの喵
 
-**Manual "extract to game folder":** use `KetamineMenu-vX.Y.Z-Nexus.zip` instead. It already contains the
-`Hellraiser\Binaries\Win64\` folders, so Vortex installs it in the right place, or you can extract it straight into the game folder.
+菜单默认热键为 Insert，可在“设置”中更改；各项功能的快捷键也可在那里绑定。ですの喵
+设置保存在 DLL 同目录的 `KetamineMenu.ini` 中。ですの喵
 
-> [!TIP]
-> If <kbd>Insert</kbd> does nothing, open `KetamineMenu.log` next to the DLL: it says exactly what was found and what wasn't.
-> See the [FAQ](#faq--troubleshooting).
+## 使用前须知
 
-## Features
+- 本工具修改单机游戏运行状态，请仅在单机离线环境使用；不要用于多人或在线对局。ですの喵
+- 修改存档前请先备份存档；上游说明的存档目录为 %LOCALAPPDATA%\Hellraiser\Saved\SaveGames 。ですの喵
+- 添加关键物品、完成任务或跳过流程可能导致剧情触发异常，请先保存游戏并谨慎操作。ですの喵
+- 训练器通过代理 DLL 和运行时挂钩绘制菜单，安全软件可能发出警报；请先核对源码和发布来源，再决定是否运行。ですの喵
+- 本地化维护者无法保证游戏更新后所有功能继续可用，遇到问题时请注明游戏版本并附上同目录的 KetamineMenu.log。ですの喵
 
-Every option resolves the game's data **by name at runtime**. If a game update removes something, that option is greyed
-out with the reason in a tooltip instead of crashing.
+## 卸载与恢复
 
-<table>
-<tr>
-<td width="50%" valign="top">
+删除本版本放入的 winmm.dll、KetamineMenu.ini 和 KetamineMenu.log 即可卸载。ですの喵若安装前备份过同名 DLL，请把备份文件恢复为 winmm.dll。ですの喵
 
-**Player**
-- God mode, infinite health
-- Health slider (set any value)
-- No sprint cooldown *(the game has no stamina)*
-- Invisible to enemies
-- One-hit kill, damage multiplier
+## 从源码构建
 
-**Combat**
-- Infinite ammo
-- Unbreakable melee weapons
-- Genesis Configuration powers with no Suffering cost
-- No power cooldown, refill Suffering
+需要 Windows x64、Visual Studio 2022（含“使用 C++ 的桌面开发”工作负载）和 CMake 3.25 或更高版本。ですの喵首次配置时 CMake 会从上游下载固定版本的 Dear ImGui 与 MinHook，因此需要网络连接。ですの喵
 
-**Movement**
-- Fly and noclip, towards where you look, with your usual movement keys or gamepad
-- Free camera (your character stays in place)
-- Speed and jump height multipliers
-- 3 saved positions + teleport to any level checkpoint
+    cmake -S . -B build -A x64
+    cmake --build build --config Release
 
-</td>
-<td width="50%" valign="top">
+生成文件为 build\Release\winmm.dll。ですの喵
 
-**ESP**
-- Enemies: box, health bar, name, distance, skeleton, head marker, chams, snaplines, off-screen arrows
-- World: items on the ground, loot containers, save points
-- Separate range for enemies and objects
+## 鸣谢
 
-**Inventory**
-- Add or remove money
-- Give any item: ammo, weapons, upgrades, healing, materials (list built from the game itself)
-- Unlock weapon skins & charms
+- 上游项目由 literalynn 发布，汉化版本保留原作者署名和原始许可证。ですの喵
+- Dear ImGui、MinHook、Dumper-7 和 Inter 字体均按上游说明使用，具体版权与许可见 THIRD-PARTY-NOTICES.txt 和 LICENSE。ですの喵
+- Windows 微软雅黑由用户系统提供，本项目不包含该字体文件。ですの喵
 
-**World**
-- Time scale (slow motion / fast forward)
-- Freeze enemies, kill enemies nearby
-- FOV editor (50° to 130°, live), hide HUD
+## 问题反馈
 
-**Progress**
-- See active and completed objectives, complete one, change the shop level
+请在 [本仓库的 Issues](https://github.com/Evolto2/Hellraiser-Revivals-Ketamine-Menu/issues) 提交问题，并附上游戏版本、复现步骤和 KetamineMenu.log；日志可能包含本机信息，上传前请先检查并遮蔽隐私内容。ですの喵
+## 文件说明
 
-</td>
-</tr>
-</table>
+- src/menu.cpp、src/features.cpp：菜单和功能描述的简体中文界面修改。ですの喵
+- LICENSE、THIRD-PARTY-NOTICES.txt：上游许可证与第三方声明。ですの喵
+- NOTICE-zh-CN.md、CHANGELOG-zh-CN.md：本地化来源、改动范围和版本记录。ですの喵
 
-### Screenshots
+## 免责声明
 
-<table>
-<tr>
-<td><img src="docs/menu-player.png" alt="Player tab"></td>
-<td><img src="docs/menu-combat.png" alt="Combat tab"></td>
-</tr>
-<tr>
-<td><img src="docs/menu-movement.png" alt="Movement tab"></td>
-<td><img src="docs/menu-esp.png" alt="ESP tab"></td>
-</tr>
-<tr>
-<td><img src="docs/menu-world.png" alt="World tab"></td>
-<td><img src="docs/menu-settings.png" alt="Settings tab"></td>
-</tr>
-</table>
+这是社区维护的非官方本地化版本；游戏名称、商标与相关权利归各自权利人所有。ですの喵使用者需自行承担运行修改器和更改游戏状态的风险；软件按随附许可“原样”提供，不提供适用性或兼容性保证。ですの喵
 
-## Using the menu
-
-| | |
-|---|---|
-| <kbd>Insert</kbd> | Open / close the menu (rebindable in **Settings**). While it is open the mouse controls the menu and the game ignores your input. |
-| Hotkeys | Any switch can get its own key in **Settings → Hotkeys**. Hotkeys work with the menu closed and show a small notification. |
-| Hover | Hover any option to see what it does, or why it is unavailable. |
-| UI scale | Follows your screen resolution; adjust it with the − / + buttons in **Settings**. |
-| Footer | Game version, CPU, GPU, RAM, resolution and FPS at a glance, at the bottom of the menu. |
-| Settings file | Everything is saved to `KetamineMenu.ini` next to the DLL. **Settings → Reset configuration** restores the defaults. |
-
-> [!WARNING]
-> Giving key items or completing objectives can break scripted sequences. **Save your game first.**
-
-## Compatibility
-
-- **Game:** tested with version `1.1.1.227384` (Steam, October 2026 update) and `1.0.1.227219`. Other versions may work:
-  anything that can't be found is greyed out.
-- **Renderer:** DirectX 12 (the default) and DirectX 11.
-- **Other mods:** the menu uses `winmm.dll`, so it doesn't collide with ReShade (`dxgi.dll`) or UE4SS (`dwmapi.dll`).
-- **Frame generation** (DLSS-G, FSR, XeSS FG): supported, but if the menu flickers, turn frame generation off.
-
-## FAQ / Troubleshooting
-
-<details>
-<summary><b>Insert does nothing</b></summary>
-
-- Check that `winmm.dll` is in `Hellraiser\Binaries\Win64` (next to `Hellraiser-Win64-Shipping.exe`), not in the top game folder.
-- Open `KetamineMenu.log` in the same folder. If it doesn't exist, the DLL wasn't loaded: check the folder again and your antivirus.
-- If you rebound the menu key, the footer of the menu (and `KetamineMenu.ini`, `[Menu] Key=`) shows the current one.
-</details>
-
-<details>
-<summary><b>Everything is greyed out</b></summary>
-
-Load a save first: most options need the player to exist. If the header says *Engine not hooked*, the game version changed in a way
-the menu can't handle yet. Please open an issue and attach `KetamineMenu.log`.
-</details>
-
-<details>
-<summary><b>My antivirus flags the DLL</b></summary>
-
-Trainers hook into a game's rendering and memory, which antivirus heuristics dislike. This is a false positive: the source code is
-right here, and every release is built from it by [GitHub Actions](https://github.com/literalynn/Hellraiser-Revivals-Ketamine-Menu/actions). You can also
-[build it yourself](#build-from-source).
-</details>
-
-<details>
-<summary><b>The game updated and something stopped working</b></summary>
-
-Options that can no longer be found are greyed out with the reason. Open an issue with your `KetamineMenu.log` and the game version
-(`Version.txt` in the game folder).
-</details>
-
-<details>
-<summary><b>How do I report a bug?</b></summary>
-
-[Open an issue](https://github.com/literalynn/Hellraiser-Revivals-Ketamine-Menu/issues) with what you did, what happened, and the `KetamineMenu.log` file
-from your last session (it is overwritten every time the game starts).
-</details>
-
-## Uninstall
-
-Delete `winmm.dll`, `KetamineMenu.ini`, `KetamineMenu.log` (and `KetamineMenu-LICENSE.txt` if you used the Nexus zip) from
-`Hellraiser\Binaries\Win64`. With Vortex, remove the mod, then delete the `.ini` and `.log` it leaves behind. No game file is ever modified.
-
-## Build from source
-
-Requirements: Windows, Visual Studio 2022 or later with the *Desktop development with C++* workload, CMake 3.25+.
-
-```bash
-cmake -S . -B build -A x64
-cmake --build build --config Release
-ctest --test-dir build -C Release
-```
-
-The DLL is `build\Release\winmm.dll`. Dear ImGui and MinHook are downloaded by CMake at pinned versions with checksums.
-Pushing a `v*` tag builds the release zip automatically.
-
-<details>
-<summary><b>How it works</b></summary>
-
-- **Loading:** the game imports `winmm.dll`, so Windows loads ours from the game folder first. Every `winmm` function is forwarded to
-  the real system DLL, then the menu starts on its own thread.
-- **Overlay:** hooks DXGI `Present` (DirectX 11 and 12) with [MinHook](https://github.com/TsudaKageyu/minhook) and draws with
-  [Dear ImGui](https://github.com/ocornut/imgui). Nothing is rendered while the menu is closed (except notifications and the ESP if enabled).
-- **Game access:** reads Unreal Engine 5's own reflection data. Only three engine structures are located by pattern (the object
-  list, the name table and `ProcessEvent`); every class, property and function is then looked up **by name**, so most game
-  updates don't break it. Game functions are called on the game thread through a `ProcessEvent` hook.
-- **Safety:** every feature runs behind a crash guard and degrades to a greyed-out option when something is missing.
-</details>
-
-## Credits
-
-- [Dear ImGui](https://github.com/ocornut/imgui) (MIT) and [MinHook](https://github.com/TsudaKageyu/minhook) (BSD-2-Clause)
-- [Dumper-7](https://github.com/Encryqed/Dumper-7), used to study the game's classes
-- [Inter](https://github.com/rsms/inter) font (SIL Open Font License 1.1)
-
-## Disclaimer
-
-Ketamine Menu is a fan-made tool. It is not affiliated with or endorsed by Saber Interactive, Boss Team Games
-or Clive Barker. All trademarks belong to their respective owners. Use it at your own risk.
-
-## License
-
-[MIT](LICENSE)
