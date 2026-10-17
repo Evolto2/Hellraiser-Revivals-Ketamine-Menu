@@ -79,8 +79,8 @@ struct State {
     std::map<std::string, Weak> cdo;
     std::map<std::string, Weak> items;
     std::vector<Weak> enemies;
-    uint64_t pcScanAt = 0, enemiesAt = 0, slowAt = 0;
-    bool cheatTried = false;
+    uint64_t pcScanAt = 0, enemiesAt = 0, slowAt = 0, cheatClassAt = 0;
+    bool cheatTried = false, cheatClass = false;
     bool cheatState[ToggleCount] = {};
     bool applied[ToggleCount] = {};
     float lastValue[ValueCount] = {};
@@ -261,6 +261,20 @@ UObject* CheatManager()
     km::Log("Cheat manager: spawned %s -> %s", Name(reinterpret_cast<UObject*>(cls)).c_str(), cm ? "OK" : "FAILED");
     s.cheat = Weak(cm);
     return cm;
+}
+
+// The cheat manager is created on first use only (it derives from the game's dev hotkey system and may touch input):
+// until then, report whether it could be.
+bool CheatAvailable()
+{
+    if (s.cheat.Get()) return true;
+    if (s.cheatTried || !s.pc.Get()) return false;
+    uint64_t now = GetTickCount64();
+    if (!s.cheatClass && now - s.cheatClassAt > 1000) { // FindClass only caches hits: look for it once a second
+        s.cheatClassAt = now;
+        s.cheatClass = FindClass("BP_InfernoCheatManager_C") != nullptr;
+    }
+    return s.cheatClass;
 }
 
 bool CheatCall(const char* fn)
@@ -631,7 +645,6 @@ void TickPlayer(UObject* player, uint64_t now, Snapshot& snap)
     UObject* attrs = s.attrs.Get();
     UObject* cmc = s.cmc.Get();
     UObject* settings = Ptr(player, "CharacterSettings");
-    UObject* cheat = CheatManager();
     auto& why = snap.why;
 
     Attr health = GetAttr(attrs, "Health"), maxHealth = GetAttr(attrs, "MaxHealth");
@@ -651,13 +664,15 @@ void TickPlayer(UObject* player, uint64_t now, Snapshot& snap)
     Override(settings, "SprintCooldownAfterSprint", sprint, kInstant);
     Override(settings, "SprintCooldownAfterShooting", sprint, kInstant);
 
-    if (!cheat) why[Invisible] = "The developers' cheat manager isn't available.";
+    if (!CheatAvailable()) why[Invisible] = "The developers' cheat manager isn't available.";
     // These cheats flip a state on each call: mirror it (reset when the cheat manager is recreated).
     auto cheatToggle = [&](Toggle t, const char* fn) {
-        if (cheat && g_on[t] != s.cheatState[t] && CheatCall(fn)) s.cheatState[t] = g_on[t];
+        if (g_on[t] != s.cheatState[t] && (g_on[t] || s.cheat.Get()) && CheatAvailable() && CheatCall(fn))
+            s.cheatState[t] = g_on[t];
     };
     cheatToggle(Invisible, "K2_InvisiblePlayer");
     cheatToggle(InfiniteAmmo, "K2_ToggleUnlimitedAmmo");
+    UObject* cheat = s.cheat.Get();
 
     if (!FindClass("EnemyCharacter")) why[OneHitKill] = snap.valueWhy[DamageMult] = "Enemy class not found.";
     TickEnemyDamage(player, now);
@@ -847,7 +862,7 @@ void Tick()
         });
         s.pc = Weak(pc);
         s.cheat = {};
-        s.cheatTried = false;
+        s.cheatTried = s.cheatClass = false;
         std::fill(std::begin(s.cheatState), std::end(s.cheatState), false);
     }
     UObject* pawn = Ptr(s.pc.Get(), "Pawn");
@@ -883,7 +898,7 @@ void Tick()
         g_esp = {};
     }
     if (!snap.reflection) snap.why.fill("Game engine not hooked: see KetamineMenu.log.");
-    snap.cheatManager = s.cheat.Get() != nullptr;
+    snap.cheatManager = CheatAvailable();
     for (int i = 0; i < 3; i++) snap.slots[i] = s.slotMap[i];
 
     std::lock_guard lock(g_snapMutex);
