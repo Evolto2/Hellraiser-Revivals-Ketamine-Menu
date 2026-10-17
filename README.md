@@ -37,7 +37,8 @@
 
 ## 下载与安装
 
-1. 本仓库首次构建完成后，打开 [Actions 工作流](https://github.com/Evolto2/Hellraiser-Revivals-Ketamine-Menu/actions/workflows/build.yml)，进入最新成功运行记录并下载 `KetamineMenu-zh-CN` 构建产物。ですの喵
+1. 下载 [Windows x64 安装包（zh-v0.4.8.1）](https://github.com/Evolto2/Hellraiser-Revivals-Ketamine-Menu/raw/refs/heads/main/releases/KetamineMenu-zh-v0.4.8.1.zip) 并解压。ですの喵
+安装包 SHA-256 校验值见 [校验清单](releases/SHA256SUMS.txt)。ですの喵
 2. 在 Steam 中打开游戏的本地文件目录，再进入 Hellraiser\Binaries\Win64；该目录应与 Hellraiser-Win64-Shipping.exe 位于同一层。ですの喵
 3. 如果目录里已经有 winmm.dll，请先备份或改名；它可能属于其他模组。ですの喵
 4. 将压缩包中的 winmm.dll 复制到 Win64 目录；KetamineMenu.ini 是可选默认配置文件。ですの喵
